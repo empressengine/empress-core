@@ -96,7 +96,6 @@ export interface ISystemGroup<T = any> {
     /**
      * @description
      * Уникальный идентификатор группы.
-     * @internal
      */
     uuid: string;
 
@@ -104,7 +103,6 @@ export interface ISystemGroup<T = any> {
      * @description
      * Регистрирует зависимости группы в ServiceContainer.
      * Зависимости группы переопределяют глобальные зависимости из EmpressCore.
-     * @internal Этот метод вызывается автоматически при создании группы.
      */
     registerGroupDependencies(): void;
 
@@ -125,7 +123,6 @@ export interface ISystemGroup<T = any> {
      * 
      * @param data Данные от Signal.
      * @returns Отсортированный массив опций Систем.
-     * @internal Этот метод вызывается автоматически при выполнении группы.
      */
     sorted(data: T): IGroupSortedOption[];
 

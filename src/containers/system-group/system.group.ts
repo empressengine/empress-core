@@ -66,7 +66,6 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
     /**
      * @description
      * Уникальный идентификатор группы.
-     * @internal
      */
     public get uuid(): string {
         return this._uuid;
@@ -91,7 +90,6 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * 
      * @param data Данные от Signal.
      * @returns Отсортированный массив опций Систем.
-     * @internal Этот метод вызывается автоматически при выполнении группы.
      */
     public sorted(data: T): IGroupSortedOption[] {
         const providers = this.setup(data);
@@ -113,7 +111,6 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * @description
      * Регистрирует зависимости группы в ServiceContainer.
      * Зависимости группы переопределяют глобальные зависимости из EmpressCore.
-     * @internal Этот метод вызывается автоматически при создании группы.
      */
     public registerGroupDependencies(): void {
         const providers = this.setupDependencies();

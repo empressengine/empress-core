@@ -21,7 +21,6 @@ class E {
    * @param groupId Идентификатор группы, в которой выполняется система.
    * @param executionId Идентификатор текущего выполнения группы.
    * @param entityStorage Хранилище сущностей, которое будет использоваться для фильтрации.
-   * @internal Этот метод предназначен для внутреннего использования в SystemGroup.
    */
   setContext(e, t, s) {
     this._groupId = e, this._executionId = t, this._entityStorage = s;
@@ -132,7 +131,6 @@ class S {
   /**
    * @description
    * Уникальный идентификатор группы.
-   * @internal
    */
   get uuid() {
     return this._uuid;
@@ -144,7 +142,6 @@ class S {
    * 
    * @param data Данные от Signal.
    * @returns Отсортированный массив опций Систем.
-   * @internal Этот метод вызывается автоматически при выполнении группы.
    */
   sorted(e) {
     const t = this.setup(e), s = 1e4;
@@ -156,7 +153,6 @@ class S {
    * @description
    * Регистрирует зависимости группы в ServiceContainer.
    * Зависимости группы переопределяют глобальные зависимости из EmpressCore.
-   * @internal Этот метод вызывается автоматически при создании группы.
    */
   registerGroupDependencies() {
     const e = this.setupDependencies();

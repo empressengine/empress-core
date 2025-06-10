@@ -49,23 +49,32 @@ import { Filtered } from '@data/filtered';
  */
 export interface ISystem<TData> {
     /**
-     * @description Gets the identifier of the group to which this system belongs.
+     * @description
+     * Идентификатор SystemGroup, к которой принадлежит система.
+     * Устанавливается автоматически при добавлении системы в группу.
      */
     groupId: string;
 
     /**
-     * @description Sets the context for the system.
+     * @description
+     * Устанавливает контекст выполнения системы.
+     * Вызывается автоматически при запуске системы в SystemGroup.
+     * 
+     * @param groupId Идентификатор группы, в которой выполняется система.
+     * @param executionId Идентификатор текущего выполнения группы.
+     * @param entityStorage Хранилище сущностей, которое будет использоваться для фильтрации.
      */
     setContext(groupId: string, executionId: string, entityStorage: IEntityStorage): void;
 
     /**
-     * Runs the System.
+     * @description
+     * Запускает выполнение системы.
+     * Этот метод вызывается из SystemGroup и не должен вызываться напрямую.
      *
-     * @param groupId - The identifier of the group to which this system belongs.
-     * @param data - The data to be passed to the `execute` method.
-     * @param externalFilter - An additional filter for the system.
-     * @param withDisabled - Whether to include entities marked as disabled.
-     * @returns void | Promise<void> - The system can be asynchronous.
+     * @param data Дополнительные данные для передачи в метод execute.
+     * @param externalFilter Дополнительный фильтр от SystemGroup.
+     * @param withDisabled Включать ли неактивные сущности.
+     * @returns void | Promise<void> Система может быть асинхронной.
      */
     run(
         data: TData,
@@ -74,23 +83,39 @@ export interface ISystem<TData> {
     ): void | Promise<void>;
 
     /**
-     * Filters entities by their components.
+     * @description
+     * Фильтрует сущности по компонентам.
+     * Автоматически объединяет фильтр системы с фильтром группы.
      *
-     * @param filter - The filter to apply to the entities.
-     * @returns Filtered object - A filtered list of entities.
+     * @param filter Фильтр для применения к сущностям.
+     * @returns Объект Filtered со списком отфильтрованных сущностей.
      */
     filter(filter: ComponentFilter): Filtered;
 
     /**
-     * The entry point for the system, where all logic is performed.
+     * @description
+     * Фильтрует сущности по компонентам без учета фильтра группы.
+     * Используется, когда нужно проигнорировать фильтр группы.
      *
-     * @param data - Additional data passed from the Group.
-     * @returns void | Promise<void> - The system can be asynchronous.
+     * @param filter Фильтр для применения к сущностям.
+     * @returns Объект Filtered со списком отфильтрованных сущностей.
+     */
+    cleanFilter(filter: ComponentFilter): Filtered
+
+    /**
+     * @description
+     * Точка входа для системы, где реализуется вся логика.
+     * Этот метод должен быть реализован в каждой конкретной системе.
+     *
+     * @param data Дополнительные данные, переданные из SystemGroup.
+     * @returns void | Promise<void> Метод может быть асинхронным.
      */
     execute(data: TData): void | Promise<void>;
 
     /**
-     * @description Called when a system thread is forcibly stopped.
+     * @description
+     * Вызывается при принудительной остановке системы.
+     * Может быть переопределен для очистки ресурсов.
      */
     forceStop(): void;
 }

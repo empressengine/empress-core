@@ -77,7 +77,6 @@ export abstract class System<TData = any> implements ISystem<TData> {
      * @param groupId Идентификатор группы, в которой выполняется система.
      * @param executionId Идентификатор текущего выполнения группы.
      * @param entityStorage Хранилище сущностей, которое будет использоваться для фильтрации.
-     * @internal Этот метод предназначен для внутреннего использования в SystemGroup.
      */
     public setContext(groupId: string, executionId: string, entityStorage: IEntityStorage): void {
         this._groupId = groupId;
