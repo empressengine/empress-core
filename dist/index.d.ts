@@ -1260,6 +1260,113 @@ export declare interface IUpdatable {
     update(deltaTime: number): void;
 }
 
+/**
+ * @description
+ * Данные, передаваемые в сигнал обновления.
+ */
+export declare interface IUpdateLoopData {
+    deltaTime: number;
+    speedMultiplier: number;
+    multipliedDelta: number;
+}
+
+/**
+ * @description
+ * Управляет жизненным циклом игры через два основных хука: start и update.
+ * Предоставляет возможности для управления игровым циклом: пауза, изменение скорости,
+ * регистрация колбэков на старт и обновление.
+ *
+ * @example Базовое использование
+ * ```typescript
+ * const lifecycle = new LifeCycle();
+ *
+ * // Подписка на обновления
+ * lifecycle.addUpdateCallback((deltaTime) => {
+ *   // Обновление игровой логики
+ * });
+ *
+ * // Подписка на старт
+ * lifecycle.addStartCallback(() => {
+ *   // Инициализация при старте
+ * });
+ *
+ * // Инициализация и запуск
+ * lifecycle.init();
+ * lifecycle.start();
+ * ```
+ *
+ * @example Управление игровым циклом
+ * ```typescript
+ * // Пауза/возобновление
+ * lifecycle.pause(true);
+ * lifecycle.pause(false);
+ *
+ * // Изменение скорости
+ * lifecycle.setSpeedMultiplier(2); // Ускорение в 2 раза
+ * lifecycle.setSpeedMultiplier(0.5); // Замедление в 2 раза
+ * ```
+ */
+export declare class LifeCycle {
+    private _lastTime;
+    private _paused;
+    private _speedMultiplier;
+    private _onUpdate;
+    private _onStart;
+    /**
+     * @description
+     * Запускает игру, вызывая все зарегистрированные колбэки старта
+     * и отправляя сигнал OnStartSignal.
+     * Запускает requestAnimationFrame для начала обновлений.
+     */
+    start(): void;
+    /**
+     * @description
+     * Добавляет колбэк, который будет вызван при старте игры.
+     * @param callback Функция для выполнения при старте
+     */
+    addStartCallback(callback: () => void): void;
+    /**
+     * @description
+     * Добавляет колбэк, который будет вызываться каждый кадр.
+     * @param callback Функция для выполнения каждый кадр, получает deltaTime в секундах
+     */
+    addUpdateCallback(callback: (deltaTime: number) => void): void;
+    /**
+     * @description
+     * Удаляет ранее добавленный колбэк обновления.
+     * @param callback Функция для удаления
+     */
+    removeUpdateCallback(callback: (deltaTime: number) => void): void;
+    /**
+     * @description
+     * Ставит игру на паузу или возобновляет её выполнение.
+     * @param paused true для паузы, false для возобновления
+     */
+    pause(paused: boolean): void;
+    /**
+     * @description
+     * Устанавливает множитель скорости игры.
+     * @param speedMultiplier Множитель скорости (1 - нормальная скорость, <1 - замедление, >1 - ускорение)
+     */
+    setSpeedMultiplier(speedMultiplier: number): void;
+    private animate;
+    private update;
+}
+
+/**
+ * @description
+ * Сигнал, отправляемый при старте игры.
+ * Используется для выполнения групп систем при старте.
+ */
+export declare const OnStartSignal: Signal<void>;
+
+/**
+ * @description
+ * Сигнал, отправляемый каждый кадр.
+ * Используется для выполнения групп систем при обновлении.
+ */
+export declare const OnUpdateSignal: Signal<IUpdateLoopData>;
+
 export declare type Provider<T = any> = ClassProvider<T> | FactoryProvider<T>;
 
 /**
