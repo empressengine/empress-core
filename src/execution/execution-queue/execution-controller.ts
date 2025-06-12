@@ -1,6 +1,7 @@
 import { ISystemsContainer } from "@containers/systems-container";
 import { EntityStorage } from "@data/entity-storage";
 import { GroupType } from "@containers/system-group";
+import { GroupsContainer } from "@containers/groups-container";
 import { ExecutionQueue } from "./execution-queue";
 import { Utils } from "@shared/utils";
 
@@ -70,6 +71,7 @@ export class ExecutionController {
 
     constructor(
         private _systemsContainer: ISystemsContainer,
+        private _groupsContainer: GroupsContainer,
         private _entityStorage: EntityStorage
     ) {}
 
@@ -95,7 +97,14 @@ export class ExecutionController {
      * @returns ID of the created queue, can be used for further queue management
      */
     public create<T>(groups: GroupType<T>[], data: T, name: string = 'unnamed'): string {
-        const queue = new ExecutionQueue(Utils.uuid(), this._systemsContainer, this._entityStorage, name);
+        const queue = new ExecutionQueue(
+            Utils.uuid(), 
+            this._systemsContainer, 
+            this._groupsContainer, 
+            this._entityStorage, 
+            name
+        );
+
         queue.setup(groups, data);
         this._queues.set(queue.id, queue);
         return queue.id;

@@ -3,6 +3,7 @@ import { EntityStorage } from "@data/entity-storage";
 import { GroupType } from "@containers/system-group";
 import { IQueueItem } from "./models";
 import { ServiceContainer } from "@containers/services-container";
+import { GroupsContainer } from "@containers/groups-container";
 import { ISystem } from "@logic/system";
 
 /**
@@ -81,6 +82,7 @@ export class ExecutionQueue {
     constructor(
         private _id: string,
         private _systemsContainer: ISystemsContainer,
+        private _groupsContainer: GroupsContainer,
         private _entityStorage: EntityStorage,
         private _name: string
     ) {}
@@ -205,8 +207,7 @@ export class ExecutionQueue {
      */
     private getExecutionQueue<T>(ctors: GroupType<T>[], data: T): IQueueItem[] {
         const groups = ctors.map(group => {
-            const instance = new group();
-            instance.registerGroupDependencies();
+            const instance = this._groupsContainer.get(group);
             return instance;
         });
 
