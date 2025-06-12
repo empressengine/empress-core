@@ -170,7 +170,7 @@ export class ServiceContainer {
             Object.defineProperty(system, item.key, {
               value,
               enumerable: true,
-              configurable: false,
+              configurable: true,
             });
         }
     })
