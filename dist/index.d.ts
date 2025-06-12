@@ -607,6 +607,7 @@ export declare class EntityStorage implements IEntityStorage {
  */
 export declare class ExecutionController {
     private _systemsContainer;
+    private _groupsContainer;
     private _entityStorage;
     private _queues;
     /**
@@ -618,7 +619,7 @@ export declare class ExecutionController {
      * @description Получает текущее количество активных очередей
      */
     get queueSize(): number;
-    constructor(_systemsContainer: ISystemsContainer, _entityStorage: EntityStorage);
+    constructor(_systemsContainer: ISystemsContainer, _groupsContainer: GroupsContainer, _entityStorage: EntityStorage);
     /**
      * @description Creates and sets up a new execution queue.
      * The queue is created, configured with systems, but not started.
@@ -789,6 +790,11 @@ export declare class Filtered {
 }
 
 export declare type GroupData<T extends ISystemGroup> = T extends ISystemGroup<infer U> ? U : never;
+
+export declare class GroupsContainer {
+    private _cache;
+    get(ctor: GroupType<any>): SystemGroup<any>;
+}
 
 export declare type GroupType<T> = new (...args: any[]) => ISystemGroup<T>;
 

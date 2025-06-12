@@ -72,7 +72,7 @@ class E {
   forceStop() {
   }
 }
-const p = class p {
+const m = class m {
   /**
    * @description
    * Генерирует гарантированно уникальный идентификатор.
@@ -122,8 +122,8 @@ const p = class p {
     });
   }
 };
-p.counter = 0, p.lastTime = 0;
-let h = p;
+m.counter = 0, m.lastTime = 0;
+let h = m;
 class S {
   constructor() {
     this._uuid = h.uuid();
@@ -511,8 +511,8 @@ class w {
   }
 }
 class F {
-  constructor(e, t, s, i) {
-    this._id = e, this._systemsContainer = t, this._entityStorage = s, this._name = i, this._queue = [], this._currentSystem = null, this._isPaused = !1, this._resumePromise = null, this._resolveResume = null, this._abortController = null;
+  constructor(e, t, s, i, n) {
+    this._id = e, this._systemsContainer = t, this._groupsContainer = s, this._entityStorage = i, this._name = n, this._queue = [], this._currentSystem = null, this._isPaused = !1, this._resumePromise = null, this._resolveResume = null, this._abortController = null;
   }
   /**
    * @description Уникальный идентификатор очереди выполнения.
@@ -604,10 +604,7 @@ class F {
    * @returns Массив элементов очереди для выполнения.
    */
   getExecutionQueue(e, t) {
-    const s = e.map((n) => {
-      const o = new n();
-      return o.registerGroupDependencies(), o;
-    }), i = [];
+    const s = e.map((n) => this._groupsContainer.get(n)), i = [];
     return s.forEach((n) => {
       const o = n.sorted(t), c = n.uuid;
       o.forEach((l) => {
@@ -625,8 +622,8 @@ class F {
   }
 }
 class C {
-  constructor(e, t) {
-    this._systemsContainer = e, this._entityStorage = t, this._queues = /* @__PURE__ */ new Map();
+  constructor(e, t, s) {
+    this._systemsContainer = e, this._groupsContainer = t, this._entityStorage = s, this._queues = /* @__PURE__ */ new Map();
   }
   /**
    * @description Получает массив ID активных очередей
@@ -663,7 +660,13 @@ class C {
    * @returns ID of the created queue, can be used for further queue management
    */
   create(e, t, s = "unnamed") {
-    const i = new F(h.uuid(), this._systemsContainer, this._entityStorage, s);
+    const i = new F(
+      h.uuid(),
+      this._systemsContainer,
+      this._groupsContainer,
+      this._entityStorage,
+      s
+    );
     return i.setup(e, t), this._queues.set(i.id, i), i.id;
   }
   /**
@@ -804,7 +807,7 @@ class f {
     this._disposables.forEach((e) => e.dispose()), this._disposables.length = 0, this._executionIds.forEach((e) => this._executionController.stop(e)), this._executionIds.length = 0;
   }
 }
-class T {
+class M {
   constructor(e, t, s, i) {
     this._uuid = e, this._timerController = t, this._onComplete = s, this._duration = i, this._elapsedTime = 0;
   }
@@ -815,7 +818,7 @@ class T {
     this._elapsedTime += e * 1e3, this._elapsedTime >= this._duration && (this._onComplete(), this._timerController.clear(this.uuid));
   }
 }
-class M {
+class T {
   constructor(e, t, s) {
     this._uuid = e, this._onComplete = t, this._duration = s, this._elapsedTime = 0;
   }
@@ -893,7 +896,7 @@ class g {
    * @returns ID созданного таймера
    */
   setTimeout(e, t) {
-    const s = h.uuid(), i = new T(s, this, e, t);
+    const s = h.uuid(), i = new M(s, this, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -904,7 +907,7 @@ class g {
    * @returns ID созданного интервала
    */
   setInterval(e, t) {
-    const s = h.uuid(), i = new M(s, e, t);
+    const s = h.uuid(), i = new T(s, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -1009,7 +1012,7 @@ class v {
   }
 }
 const D = new v(), $ = new v();
-class m {
+class p {
   constructor() {
     this._lastTime = 0, this._paused = !1, this._speedMultiplier = 1, this._onUpdate = [], this._onStart = [], this.animate = (e) => {
       if (!this._paused) {
@@ -1088,7 +1091,7 @@ class k {
    */
   init() {
     this.registerServices();
-    const e = a.instance.get(m), t = a.instance.get(g);
+    const e = a.instance.get(p), t = a.instance.get(g);
     e.addUpdateCallback((s) => {
       t.update(s);
     });
@@ -1098,7 +1101,7 @@ class k {
    * Запускает приложение, инициируя жизненный цикл.
    */
   start() {
-    a.instance.get(m).start();
+    a.instance.get(p).start();
   }
   /**
    * @description
@@ -1128,15 +1131,24 @@ class k {
    * - SignalsController для управления сигналами
    */
   registerServices() {
-    const e = new w(), t = new y(), s = new m(), i = new g(), n = new C(t, e), o = new f(n);
+    const e = new w(), t = new y(), s = new p(), i = new g(), n = new C(t, e), o = new f(n);
     this.registerGlobalServices([
       { provide: w, useFactory: () => e },
       { provide: y, useFactory: () => t },
-      { provide: m, useFactory: () => s },
+      { provide: p, useFactory: () => s },
       { provide: g, useFactory: () => i },
       { provide: C, useFactory: () => n },
       { provide: f, useFactory: () => o }
     ]);
+  }
+}
+class j {
+  constructor() {
+    this._cache = /* @__PURE__ */ new Map();
+  }
+  get(e) {
+    let t = this._cache.get(e);
+    return t || (t = new e(), t.registerGroupDependencies(), this._cache.set(e, t)), t;
   }
 }
 class x {
@@ -1203,7 +1215,7 @@ class x {
     this._items.length = 0;
   }
 }
-class j {
+class U {
   constructor(e, t = "Entity") {
     this._uuid = e, this._name = t, this._active = !0, this._components = new x(), this._disabledComponents = new x();
   }
@@ -1380,12 +1392,13 @@ export {
   u as ComponentsRaritySorter,
   A as DeferredPromise,
   k as EmpressCore,
-  j as Entity,
+  U as Entity,
   w as EntityStorage,
   C as ExecutionController,
   P as Filtered,
+  j as GroupsContainer,
   I as Inject,
-  m as LifeCycle,
+  p as LifeCycle,
   D as OnStartSignal,
   $ as OnUpdateSignal,
   a as ServiceContainer,
