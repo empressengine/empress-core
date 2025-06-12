@@ -3,6 +3,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 
+![Empress Logo](https://empressengine.github.io/empress-documentation/assets/images/empress_logo_big-469677dee942cbc8bbc7f8fa54689abd.png)
+
 Empress Core - это легковесный и гибкий игровой фреймворк на TypeScript, построенный на принципах ECS (Entity-Component-System) архитектуры. Является частью экосистемы Empress Engine. Фреймворк предоставляет мощный набор инструментов для создания масштабируемых игровых приложений с чистой и поддерживаемой кодовой базой.
 
 ## Содержание
