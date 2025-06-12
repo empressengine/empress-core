@@ -267,15 +267,15 @@ class a {
       if (i.key in t) {
         const o = ((n = this.providers.get(e)) == null ? void 0 : n.get(i.token)) ?? this.providers.get("global").get(i.token);
         if (!o) return;
-        let c = this.get(i.token, e);
-        o.immutable && (c = new Proxy(c, {
+        let u = this.get(i.token, e);
+        o.immutable && (u = new Proxy(u, {
           get: (l, _) => {
             const d = l[_];
             return d instanceof Object ? new Proxy(d, {}) : d;
           },
           set: () => (console.warn("Direct state mutation is not allowed. Use setState instead."), !1)
         })), Object.defineProperty(t, i.key, {
-          value: c,
+          value: u,
           enumerable: !0,
           configurable: !0
         });
@@ -283,7 +283,7 @@ class a {
     });
   }
 }
-function I(r) {
+function k(r) {
   if (!r)
     throw new Error("Token must be provided to @Inject decorator when not using reflect-metadata");
   return function(e, t) {
@@ -323,8 +323,17 @@ class y {
     return t || (t = new e(), this._cache.set(e, t)), t;
   }
 }
-const q = (r, e) => (t) => !(!t.hasComponents(r) || e && t.hasComponents(e));
-class P {
+class q {
+  constructor() {
+    this._cache = /* @__PURE__ */ new Map();
+  }
+  get(e) {
+    let t = this._cache.get(e);
+    return t || (t = new e(), t.registerGroupDependencies(), this._cache.set(e, t)), t;
+  }
+}
+const P = (r, e) => (t) => !(!t.hasComponents(r) || e && t.hasComponents(e));
+class F {
   constructor(e = []) {
     this._entities = e;
   }
@@ -424,7 +433,7 @@ const b = class b {
   }
 };
 b._componentFrequency = /* @__PURE__ */ new Map();
-let u = b;
+let c = b;
 class w {
   constructor() {
     this._entities = /* @__PURE__ */ new Map();
@@ -504,13 +513,13 @@ class w {
   filter(e, t) {
     let s = t ? this.getAllEntities() : this.getActiveEntities();
     if (e.excludes || (e.excludes = []), e != null && e.includes.length || e != null && e.excludes.length) {
-      const i = u.sortByRarity(e.includes), n = e.excludes.length ? u.sortByRarity(e.excludes) : void 0, o = q(i, n);
+      const i = c.sortByRarity(e.includes), n = e.excludes.length ? c.sortByRarity(e.excludes) : void 0, o = P(i, n);
       s = s.filter(o);
     }
-    return new P(s);
+    return new F(s);
   }
 }
-class F {
+class M {
   constructor(e, t, s, i, n) {
     this._id = e, this._systemsContainer = t, this._groupsContainer = s, this._entityStorage = i, this._name = n, this._queue = [], this._currentSystem = null, this._isPaused = !1, this._resumePromise = null, this._resolveResume = null, this._abortController = null;
   }
@@ -547,9 +556,9 @@ class F {
             if (e)
               await Promise.race([
                 n,
-                new Promise((o, c) => {
+                new Promise((o, u) => {
                   this._abortController.signal.addEventListener("abort", () => {
-                    c(new Error("Queue execution was stopped"));
+                    u(new Error("Queue execution was stopped"));
                   });
                 })
               ]);
@@ -606,13 +615,13 @@ class F {
   getExecutionQueue(e, t) {
     const s = e.map((n) => this._groupsContainer.get(n)), i = [];
     return s.forEach((n) => {
-      const o = n.sorted(t), c = n.uuid;
+      const o = n.sorted(t), u = n.uuid;
       o.forEach((l) => {
         const _ = this._systemsContainer.get(l.instance.system);
         for (let d = 0; d < l.repeat; d++)
           i.push({
             ...l,
-            groupId: c,
+            groupId: u,
             data: l.instance.data,
             executionId: this._id,
             system: _
@@ -660,7 +669,7 @@ class C {
    * @returns ID of the created queue, can be used for further queue management
    */
   create(e, t, s = "unnamed") {
-    const i = new F(
+    const i = new M(
       h.uuid(),
       this._systemsContainer,
       this._groupsContainer,
@@ -791,8 +800,8 @@ class f {
   subscribe() {
     const e = Array.from(this._pairs.keys()), t = Array.from(this._pairs.values());
     for (let s = 0; s < e.length; s++) {
-      const i = e[s], n = t[s], o = i.subscribe((c) => {
-        const l = this._executionController.create(n, c, i.name);
+      const i = e[s], n = t[s], o = i.subscribe((u) => {
+        const l = this._executionController.create(n, u, i.name);
         this._executionController.run(l), this._executionIds.push(l);
       });
       this._disposables.push(o);
@@ -807,7 +816,7 @@ class f {
     this._disposables.forEach((e) => e.dispose()), this._disposables.length = 0, this._executionIds.forEach((e) => this._executionController.stop(e)), this._executionIds.length = 0;
   }
 }
-class M {
+class T {
   constructor(e, t, s, i) {
     this._uuid = e, this._timerController = t, this._onComplete = s, this._duration = i, this._elapsedTime = 0;
   }
@@ -818,7 +827,7 @@ class M {
     this._elapsedTime += e * 1e3, this._elapsedTime >= this._duration && (this._onComplete(), this._timerController.clear(this.uuid));
   }
 }
-class T {
+class A {
   constructor(e, t, s) {
     this._uuid = e, this._onComplete = t, this._duration = s, this._elapsedTime = 0;
   }
@@ -832,7 +841,7 @@ class T {
     this._elapsedTime += e * 1e3, this._elapsedTime >= this._duration && (this._elapsedTime = 0, this._onComplete());
   }
 }
-class A {
+class D {
   constructor() {
     this.promise = new Promise((e, t) => {
       this.resolve = e, this.reject = t;
@@ -896,7 +905,7 @@ class g {
    * @returns ID созданного таймера
    */
   setTimeout(e, t) {
-    const s = h.uuid(), i = new M(s, this, e, t);
+    const s = h.uuid(), i = new T(s, this, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -907,7 +916,7 @@ class g {
    * @returns ID созданного интервала
    */
   setInterval(e, t) {
-    const s = h.uuid(), i = new T(s, e, t);
+    const s = h.uuid(), i = new A(s, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -918,7 +927,7 @@ class g {
    * Метод `resolve` немедленно разрешает Promise и удаляет таймер из контроллера.
    */
   sleep(e) {
-    const t = new A(), s = this.setTimeout(() => t.resolve(), e);
+    const t = new D(), s = this.setTimeout(() => t.resolve(), e);
     return {
       id: s,
       wait: async () => await t.promise,
@@ -1011,7 +1020,7 @@ class v {
     await Promise.all(s), t.length > 0 && (this.listeners = this.listeners.filter((i) => !t.includes(i.callback)));
   }
 }
-const D = new v(), $ = new v();
+const $ = new v(), I = new v();
 class p {
   constructor() {
     this._lastTime = 0, this._paused = !1, this._speedMultiplier = 1, this._onUpdate = [], this._onStart = [], this.animate = (e) => {
@@ -1031,7 +1040,7 @@ class p {
    * Запускает requestAnimationFrame для начала обновлений.
    */
   start() {
-    this._onStart.forEach((e) => e()), D.dispatch(), requestAnimationFrame(this.animate);
+    this._onStart.forEach((e) => e()), $.dispatch(), requestAnimationFrame(this.animate);
   }
   /**
    * @description
@@ -1076,14 +1085,14 @@ class p {
   update(e) {
     if (this._paused) return;
     const t = e * this._speedMultiplier;
-    this._onUpdate.forEach((s) => s(t)), $.dispatch({
+    this._onUpdate.forEach((s) => s(t)), I.dispatch({
       deltaTime: e,
       speedMultiplier: this._speedMultiplier,
       multipliedDelta: t
     });
   }
 }
-class k {
+class j {
   /**
    * @description
    * Инициализирует все модули приложения.
@@ -1131,24 +1140,15 @@ class k {
    * - SignalsController для управления сигналами
    */
   registerServices() {
-    const e = new w(), t = new y(), s = new p(), i = new g(), n = new C(t, e), o = new f(n);
+    const e = new w(), t = new y(), s = new q(), i = new p(), n = new g(), o = new C(t, s, e), u = new f(o);
     this.registerGlobalServices([
       { provide: w, useFactory: () => e },
       { provide: y, useFactory: () => t },
-      { provide: p, useFactory: () => s },
-      { provide: g, useFactory: () => i },
-      { provide: C, useFactory: () => n },
-      { provide: f, useFactory: () => o }
+      { provide: p, useFactory: () => i },
+      { provide: g, useFactory: () => n },
+      { provide: C, useFactory: () => o },
+      { provide: f, useFactory: () => u }
     ]);
-  }
-}
-class j {
-  constructor() {
-    this._cache = /* @__PURE__ */ new Map();
-  }
-  get(e) {
-    let t = this._cache.get(e);
-    return t || (t = new e(), t.registerGroupDependencies(), this._cache.set(e, t)), t;
   }
 }
 class x {
@@ -1281,7 +1281,7 @@ class U {
       throw new Error(
         `Component of type ${s.name} already exists in entity [${this._name}-${this._uuid}]`
       );
-    t ? (this._components.set(e), u.increment(s)) : (this._disabledComponents.set(e), u.decrement(s));
+    t ? (this._components.set(e), c.increment(s)) : (this._disabledComponents.set(e), c.decrement(s));
   }
   /**
    * @description Получает компонент по его конструктору.
@@ -1318,7 +1318,7 @@ class U {
       throw new Error(
         `Component type ${e.name} does not exist in entity [${this._name}-${this._uuid}]`
       );
-    return u.decrement(e), t;
+    return c.decrement(e), t;
   }
   /**
    * @description
@@ -1334,7 +1334,7 @@ class U {
         `Cannot enable component of type ${e.name} - it does not exist or is already enabled.`
       );
     const t = this._disabledComponents.get(e);
-    this._disabledComponents.delete(e), this._components.set(t), u.increment(e);
+    this._disabledComponents.delete(e), this._components.set(t), c.increment(e);
   }
   /**
    * @description
@@ -1350,7 +1350,7 @@ class U {
         `Cannot disable component of type ${e.name} - it does not exist or is already disabled.`
       );
     const t = this._components.get(e);
-    this._components.delete(e), this._disabledComponents.set(t), u.decrement(e);
+    this._components.delete(e), this._disabledComponents.set(t), c.decrement(e);
   }
   /**
    * @description
@@ -1359,7 +1359,7 @@ class U {
    */
   disableAllComponents() {
     for (const e of this._components.items)
-      this._disabledComponents.set(e), u.decrement(e.constructor);
+      this._disabledComponents.set(e), c.decrement(e.constructor);
     this._components.clear();
   }
   /**
@@ -1369,7 +1369,7 @@ class U {
    */
   enableAllComponents() {
     for (const e of this._disabledComponents.items)
-      this._components.set(e), u.increment(e.constructor);
+      this._components.set(e), c.increment(e.constructor);
     this._disabledComponents.clear();
   }
   /**
@@ -1389,18 +1389,18 @@ class U {
   }
 }
 export {
-  u as ComponentsRaritySorter,
-  A as DeferredPromise,
-  k as EmpressCore,
+  c as ComponentsRaritySorter,
+  D as DeferredPromise,
+  j as EmpressCore,
   U as Entity,
   w as EntityStorage,
   C as ExecutionController,
-  P as Filtered,
-  j as GroupsContainer,
-  I as Inject,
+  F as Filtered,
+  q as GroupsContainer,
+  k as Inject,
   p as LifeCycle,
-  D as OnStartSignal,
-  $ as OnUpdateSignal,
+  $ as OnStartSignal,
+  I as OnUpdateSignal,
   a as ServiceContainer,
   v as Signal,
   f as SignalsController,
