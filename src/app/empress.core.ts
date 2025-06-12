@@ -1,5 +1,6 @@
 import { Provider, ServiceContainer } from "@containers/services-container";
 import { SystemsContainer } from "@containers/systems-container";
+import { GroupsContainer } from "@containers/groups-container";
 import { EntityStorage } from "@data/entity-storage";
 import { ExecutionController } from "@execution/execution-queue";
 import { ISignalConfig, SignalsController } from "@execution/signals-controller";
@@ -91,9 +92,10 @@ export class EmpressCore {
     protected registerServices(): void {
         const entityStorage = new EntityStorage();
         const systemsContainer = new SystemsContainer();
+        const groupsContainer = new GroupsContainer();
         const lifecycle = new LifeCycle();
         const timerController = new TimerController();
-        const executionController = new ExecutionController(systemsContainer, entityStorage);
+        const executionController = new ExecutionController(systemsContainer, groupsContainer, entityStorage);
         const signalController = new SignalsController(executionController);
 
         this.registerGlobalServices([
