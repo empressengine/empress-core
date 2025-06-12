@@ -277,7 +277,7 @@ class a {
         })), Object.defineProperty(t, i.key, {
           value: c,
           enumerable: !0,
-          configurable: !1
+          configurable: !0
         });
       }
     });
