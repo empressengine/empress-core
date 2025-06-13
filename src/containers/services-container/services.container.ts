@@ -147,12 +147,27 @@ export class ServiceContainer {
     dependencies.forEach(item => {
         if(item.key in system) {
 
-            const provider = this.providers.get(moduleId)?.get(item.token)
-              ?? this.providers.get('global')!.get(item.token);
+          const hasGlobal = this.providers.get('global')!.has(item.token);
+          const hasModule = this.providers.get(moduleId)?.has(item.token);
+
+          if(!hasModule && !hasGlobal) return;
+
+          let provider;
+          let findInModule;
+
+          if(hasModule) {
+            provider = this.providers.get(moduleId)?.get(item.token);
+            findInModule = moduleId;
+          }
+
+          else if(hasGlobal) {
+            provider = this.providers.get('global')!.get(item.token);
+            findInModule = 'global';
+          }
 
             if(!provider) return;
 
-            let value = this.get(item.token, moduleId);
+            let value = this.get(item.token, findInModule);
 
             if(provider.immutable) {
                 value = new Proxy(value, {
