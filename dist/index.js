@@ -1,4 +1,4 @@
-class E {
+class F {
   constructor() {
     this._groupId = "", this._executionId = "", this.withDisabled = !1;
   }
@@ -72,7 +72,7 @@ class E {
   forceStop() {
   }
 }
-const m = class m {
+const _ = class _ {
   /**
    * @description
    * Генерирует гарантированно уникальный идентификатор.
@@ -122,9 +122,9 @@ const m = class m {
     });
   }
 };
-m.counter = 0, m.lastTime = 0;
-let h = m;
-class S {
+_.counter = 0, _.lastTime = 0;
+let h = _;
+class M {
   constructor() {
     this._uuid = h.uuid();
   }
@@ -263,19 +263,21 @@ class a {
         key: i.key
       });
     s.forEach((i) => {
-      var n;
+      var n, o;
       if (i.key in t) {
-        const o = ((n = this.providers.get(e)) == null ? void 0 : n.get(i.token)) ?? this.providers.get("global").get(i.token);
-        if (!o) return;
-        let u = this.get(i.token, e);
-        o.immutable && (u = new Proxy(u, {
-          get: (l, _) => {
-            const d = l[_];
-            return d instanceof Object ? new Proxy(d, {}) : d;
+        const c = this.providers.get("global").has(i.token), l = (n = this.providers.get(e)) == null ? void 0 : n.has(i.token);
+        if (!l && !c) return;
+        let d, p;
+        if (l ? (d = (o = this.providers.get(e)) == null ? void 0 : o.get(i.token), p = e) : c && (d = this.providers.get("global").get(i.token), p = "global"), !d) return;
+        let f = this.get(i.token, p);
+        d.immutable && (f = new Proxy(f, {
+          get: (q, P) => {
+            const g = q[P];
+            return g instanceof Object ? new Proxy(g, {}) : g;
           },
           set: () => (console.warn("Direct state mutation is not allowed. Use setState instead."), !1)
         })), Object.defineProperty(t, i.key, {
-          value: u,
+          value: f,
           enumerable: !0,
           configurable: !0
         });
@@ -283,12 +285,12 @@ class a {
     });
   }
 }
-function k(r) {
+function Q(r) {
   if (!r)
     throw new Error("Token must be provided to @Inject decorator when not using reflect-metadata");
   return function(e, t) {
     let s = "global";
-    if (e instanceof E) {
+    if (e instanceof F) {
       Object.defineProperty(e, "injectHere", {
         value: "injectHere",
         enumerable: !1,
@@ -298,14 +300,14 @@ function k(r) {
       }), a.instance.memorizeSystem(e.constructor, r, t);
       return;
     }
-    e instanceof S && (s = e.uuid || "global"), Object.defineProperty(e, t, {
+    e instanceof M && (s = e.uuid || "global"), Object.defineProperty(e, t, {
       get: () => a.instance.get(r, s),
       enumerable: !0,
       configurable: !1
     });
   };
 }
-class y {
+class C {
   constructor() {
     this._cache = /* @__PURE__ */ new Map();
   }
@@ -323,7 +325,7 @@ class y {
     return t || (t = new e(), this._cache.set(e, t)), t;
   }
 }
-class q {
+class T {
   constructor() {
     this._cache = /* @__PURE__ */ new Map();
   }
@@ -332,8 +334,8 @@ class q {
     return t || (t = new e(), t.registerGroupDependencies(), this._cache.set(e, t)), t;
   }
 }
-const P = (r, e) => (t) => !(!t.hasComponents(r) || e && t.hasComponents(e));
-class F {
+const A = (r, e) => (t) => !(!t.hasComponents(r) || e && t.hasComponents(e));
+class D {
   constructor(e = []) {
     this._entities = e;
   }
@@ -390,7 +392,7 @@ class F {
     await Promise.all(t);
   }
 }
-const b = class b {
+const w = class w {
   /**
    * @description
    * Увеличивает частоту использования указанного типа компонента.
@@ -432,9 +434,9 @@ const b = class b {
     return [...e].sort((t, s) => this.rarity(t) - this.rarity(s));
   }
 };
-b._componentFrequency = /* @__PURE__ */ new Map();
-let c = b;
-class w {
+w._componentFrequency = /* @__PURE__ */ new Map();
+let u = w;
+class x {
   constructor() {
     this._entities = /* @__PURE__ */ new Map();
   }
@@ -513,13 +515,13 @@ class w {
   filter(e, t) {
     let s = t ? this.getAllEntities() : this.getActiveEntities();
     if (e.excludes || (e.excludes = []), e != null && e.includes.length || e != null && e.excludes.length) {
-      const i = c.sortByRarity(e.includes), n = e.excludes.length ? c.sortByRarity(e.excludes) : void 0, o = P(i, n);
+      const i = u.sortByRarity(e.includes), n = e.excludes.length ? u.sortByRarity(e.excludes) : void 0, o = A(i, n);
       s = s.filter(o);
     }
-    return new F(s);
+    return new D(s);
   }
 }
-class M {
+class $ {
   constructor(e, t, s, i, n) {
     this._id = e, this._systemsContainer = t, this._groupsContainer = s, this._entityStorage = i, this._name = n, this._queue = [], this._currentSystem = null, this._isPaused = !1, this._resumePromise = null, this._resolveResume = null, this._abortController = null;
   }
@@ -556,9 +558,9 @@ class M {
             if (e)
               await Promise.race([
                 n,
-                new Promise((o, u) => {
+                new Promise((o, c) => {
                   this._abortController.signal.addEventListener("abort", () => {
-                    u(new Error("Queue execution was stopped"));
+                    c(new Error("Queue execution was stopped"));
                   });
                 })
               ]);
@@ -615,22 +617,22 @@ class M {
   getExecutionQueue(e, t) {
     const s = e.map((n) => this._groupsContainer.get(n)), i = [];
     return s.forEach((n) => {
-      const o = n.sorted(t), u = n.uuid;
+      const o = n.sorted(t), c = n.uuid;
       o.forEach((l) => {
-        const _ = this._systemsContainer.get(l.instance.system);
-        for (let d = 0; d < l.repeat; d++)
+        const d = this._systemsContainer.get(l.instance.system);
+        for (let p = 0; p < l.repeat; p++)
           i.push({
             ...l,
-            groupId: u,
+            groupId: c,
             data: l.instance.data,
             executionId: this._id,
-            system: _
+            system: d
           });
       });
     }), i;
   }
 }
-class C {
+class v {
   constructor(e, t, s) {
     this._systemsContainer = e, this._groupsContainer = t, this._entityStorage = s, this._queues = /* @__PURE__ */ new Map();
   }
@@ -669,7 +671,7 @@ class C {
    * @returns ID of the created queue, can be used for further queue management
    */
   create(e, t, s = "unnamed") {
-    const i = new M(
+    const i = new $(
       h.uuid(),
       this._systemsContainer,
       this._groupsContainer,
@@ -775,7 +777,7 @@ class C {
     return t ? { isPaused: t._isPaused } : null;
   }
 }
-class f {
+class b {
   constructor(e) {
     this._executionController = e, this._pairs = /* @__PURE__ */ new Map(), this._disposables = [], this._executionIds = [];
   }
@@ -800,8 +802,8 @@ class f {
   subscribe() {
     const e = Array.from(this._pairs.keys()), t = Array.from(this._pairs.values());
     for (let s = 0; s < e.length; s++) {
-      const i = e[s], n = t[s], o = i.subscribe((u) => {
-        const l = this._executionController.create(n, u, i.name);
+      const i = e[s], n = t[s], o = i.subscribe((c) => {
+        const l = this._executionController.create(n, c, i.name);
         this._executionController.run(l), this._executionIds.push(l);
       });
       this._disposables.push(o);
@@ -816,7 +818,7 @@ class f {
     this._disposables.forEach((e) => e.dispose()), this._disposables.length = 0, this._executionIds.forEach((e) => this._executionController.stop(e)), this._executionIds.length = 0;
   }
 }
-class T {
+class k {
   constructor(e, t, s, i) {
     this._uuid = e, this._timerController = t, this._onComplete = s, this._duration = i, this._elapsedTime = 0;
   }
@@ -827,7 +829,7 @@ class T {
     this._elapsedTime += e * 1e3, this._elapsedTime >= this._duration && (this._onComplete(), this._timerController.clear(this.uuid));
   }
 }
-class A {
+class I {
   constructor(e, t, s) {
     this._uuid = e, this._onComplete = t, this._duration = s, this._elapsedTime = 0;
   }
@@ -841,7 +843,7 @@ class A {
     this._elapsedTime += e * 1e3, this._elapsedTime >= this._duration && (this._elapsedTime = 0, this._onComplete());
   }
 }
-class D {
+class j {
   constructor() {
     this.promise = new Promise((e, t) => {
       this.resolve = e, this.reject = t;
@@ -893,7 +895,7 @@ class D {
     return Promise.race(e.map((t) => t.promise));
   }
 }
-class g {
+class y {
   constructor() {
     this._updatables = /* @__PURE__ */ new Map();
   }
@@ -905,7 +907,7 @@ class g {
    * @returns ID созданного таймера
    */
   setTimeout(e, t) {
-    const s = h.uuid(), i = new T(s, this, e, t);
+    const s = h.uuid(), i = new k(s, this, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -916,7 +918,7 @@ class g {
    * @returns ID созданного интервала
    */
   setInterval(e, t) {
-    const s = h.uuid(), i = new A(s, e, t);
+    const s = h.uuid(), i = new I(s, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -927,7 +929,7 @@ class g {
    * Метод `resolve` немедленно разрешает Promise и удаляет таймер из контроллера.
    */
   sleep(e) {
-    const t = new D(), s = this.setTimeout(() => t.resolve(), e);
+    const t = new j(), s = this.setTimeout(() => t.resolve(), e);
     return {
       id: s,
       wait: async () => await t.promise,
@@ -953,7 +955,7 @@ class g {
     Array.from(this._updatables.values()).forEach((s) => s.update(e));
   }
 }
-class v {
+class S {
   /**
    * @description
    * Создаёт новый сигнал.
@@ -1020,8 +1022,8 @@ class v {
     await Promise.all(s), t.length > 0 && (this.listeners = this.listeners.filter((i) => !t.includes(i.callback)));
   }
 }
-const $ = new v(), I = new v();
-class p {
+const U = new S(), G = new S();
+class m {
   constructor() {
     this._lastTime = 0, this._paused = !1, this._speedMultiplier = 1, this._onUpdate = [], this._onStart = [], this.animate = (e) => {
       if (!this._paused) {
@@ -1040,7 +1042,7 @@ class p {
    * Запускает requestAnimationFrame для начала обновлений.
    */
   start() {
-    this._onStart.forEach((e) => e()), $.dispatch(), requestAnimationFrame(this.animate);
+    this._onStart.forEach((e) => e()), U.dispatch(), requestAnimationFrame(this.animate);
   }
   /**
    * @description
@@ -1085,14 +1087,14 @@ class p {
   update(e) {
     if (this._paused) return;
     const t = e * this._speedMultiplier;
-    this._onUpdate.forEach((s) => s(t)), I.dispatch({
+    this._onUpdate.forEach((s) => s(t)), G.dispatch({
       deltaTime: e,
       speedMultiplier: this._speedMultiplier,
       multipliedDelta: t
     });
   }
 }
-class j {
+class O {
   /**
    * @description
    * Инициализирует все модули приложения.
@@ -1100,7 +1102,7 @@ class j {
    */
   init() {
     this.registerServices();
-    const e = a.instance.get(p), t = a.instance.get(g);
+    const e = a.instance.get(m), t = a.instance.get(y);
     e.addUpdateCallback((s) => {
       t.update(s);
     });
@@ -1110,7 +1112,7 @@ class j {
    * Запускает приложение, инициируя жизненный цикл.
    */
   start() {
-    a.instance.get(p).start();
+    a.instance.get(m).start();
   }
   /**
    * @description
@@ -1118,7 +1120,7 @@ class j {
    * @param configs Конфигурации связей между сигналами и группами
    */
   listen(e) {
-    const t = a.instance.get(f);
+    const t = a.instance.get(b);
     t.setup(e), t.subscribe();
   }
   /**
@@ -1140,18 +1142,18 @@ class j {
    * - SignalsController для управления сигналами
    */
   registerServices() {
-    const e = new w(), t = new y(), s = new q(), i = new p(), n = new g(), o = new C(t, s, e), u = new f(o);
+    const e = new x(), t = new C(), s = new T(), i = new m(), n = new y(), o = new v(t, s, e), c = new b(o);
     this.registerGlobalServices([
-      { provide: w, useFactory: () => e },
-      { provide: y, useFactory: () => t },
-      { provide: p, useFactory: () => i },
-      { provide: g, useFactory: () => n },
-      { provide: C, useFactory: () => o },
-      { provide: f, useFactory: () => u }
+      { provide: x, useFactory: () => e },
+      { provide: C, useFactory: () => t },
+      { provide: m, useFactory: () => i },
+      { provide: y, useFactory: () => n },
+      { provide: v, useFactory: () => o },
+      { provide: b, useFactory: () => c }
     ]);
   }
 }
-class x {
+class E {
   constructor() {
     this._items = [];
   }
@@ -1215,9 +1217,9 @@ class x {
     this._items.length = 0;
   }
 }
-class U {
+class R {
   constructor(e, t = "Entity") {
-    this._uuid = e, this._name = t, this._active = !0, this._components = new x(), this._disabledComponents = new x();
+    this._uuid = e, this._name = t, this._active = !0, this._components = new E(), this._disabledComponents = new E();
   }
   /**
    * @description
@@ -1281,7 +1283,7 @@ class U {
       throw new Error(
         `Component of type ${s.name} already exists in entity [${this._name}-${this._uuid}]`
       );
-    t ? (this._components.set(e), c.increment(s)) : (this._disabledComponents.set(e), c.decrement(s));
+    t ? (this._components.set(e), u.increment(s)) : (this._disabledComponents.set(e), u.decrement(s));
   }
   /**
    * @description Получает компонент по его конструктору.
@@ -1318,7 +1320,7 @@ class U {
       throw new Error(
         `Component type ${e.name} does not exist in entity [${this._name}-${this._uuid}]`
       );
-    return c.decrement(e), t;
+    return u.decrement(e), t;
   }
   /**
    * @description
@@ -1334,7 +1336,7 @@ class U {
         `Cannot enable component of type ${e.name} - it does not exist or is already enabled.`
       );
     const t = this._disabledComponents.get(e);
-    this._disabledComponents.delete(e), this._components.set(t), c.increment(e);
+    this._disabledComponents.delete(e), this._components.set(t), u.increment(e);
   }
   /**
    * @description
@@ -1350,7 +1352,7 @@ class U {
         `Cannot disable component of type ${e.name} - it does not exist or is already disabled.`
       );
     const t = this._components.get(e);
-    this._components.delete(e), this._disabledComponents.set(t), c.decrement(e);
+    this._components.delete(e), this._disabledComponents.set(t), u.decrement(e);
   }
   /**
    * @description
@@ -1359,7 +1361,7 @@ class U {
    */
   disableAllComponents() {
     for (const e of this._components.items)
-      this._disabledComponents.set(e), c.decrement(e.constructor);
+      this._disabledComponents.set(e), u.decrement(e.constructor);
     this._components.clear();
   }
   /**
@@ -1369,7 +1371,7 @@ class U {
    */
   enableAllComponents() {
     for (const e of this._disabledComponents.items)
-      this._components.set(e), c.increment(e.constructor);
+      this._components.set(e), u.increment(e.constructor);
     this._disabledComponents.clear();
   }
   /**
@@ -1389,24 +1391,24 @@ class U {
   }
 }
 export {
-  c as ComponentsRaritySorter,
-  D as DeferredPromise,
-  j as EmpressCore,
-  U as Entity,
-  w as EntityStorage,
-  C as ExecutionController,
-  F as Filtered,
-  q as GroupsContainer,
-  k as Inject,
-  p as LifeCycle,
-  $ as OnStartSignal,
-  I as OnUpdateSignal,
+  u as ComponentsRaritySorter,
+  j as DeferredPromise,
+  O as EmpressCore,
+  R as Entity,
+  x as EntityStorage,
+  v as ExecutionController,
+  D as Filtered,
+  T as GroupsContainer,
+  Q as Inject,
+  m as LifeCycle,
+  U as OnStartSignal,
+  G as OnUpdateSignal,
   a as ServiceContainer,
-  v as Signal,
-  f as SignalsController,
-  E as System,
-  S as SystemGroup,
-  y as SystemsContainer,
-  g as TimerController,
+  S as Signal,
+  b as SignalsController,
+  F as System,
+  M as SystemGroup,
+  C as SystemsContainer,
+  y as TimerController,
   h as Utils
 };
