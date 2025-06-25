@@ -1,8 +1,9 @@
 import { ComponentType } from '@data/component';
 import { ISystem, SystemType } from '@logic/system';
-import { SystemData } from './types';
+import { SystemChain } from '../system-chain';
 
 export interface ISystemOptions {
+    id: string;
     withDisabled: boolean;
     includes: ComponentType<any>[];
     excludes: ComponentType<any>[];
@@ -24,7 +25,6 @@ export interface ISystemInstance extends ISystemExternalData, ISystemOptions {
 }
 
 export interface IGroupOption extends Partial<ISystemOptions> {
-    order?: number;
     instance?: ISystemProvider;
 }
 
@@ -56,28 +56,16 @@ export interface IGroupSortedOption extends ISystemOptions {
  * ```typescript
  * class MyGroup extends SystemGroup<MyData> {
  *     // Настройка порядка выполнения Систем
- *     public setup(data: MyData): IGroupOption[] {
- *         return [
+ *     public setup(chain: SystemChain, data: MyData): void {
+ *         chain
  *             // Простая регистрация Системы
- *             {
- *                 instance: this.provide(FirstSystem),
- *             },
+ *             .add(FirstSystem)
  *             // Регистрация с передачей данных
- *             {
- *                 instance: this.provide(SecondSystem, data),
- *             },
+ *             .add(SecondSystem, data)
  *             // Расширение фильтра Системы
- *             {
- *                 instance: this.provide(ThirdSystem),
- *                 includes: [AdditionalComponent]
- *             },
+ *             .add(ThirdSystem, null, { includes: [AdditionalComponent] })
  *             // Повторное и условное выполнение
- *             {
- *                 instance: this.provide(FourthSystem),
- *                 repeat: 3,
- *                 canExecute: (data) => data.someCondition
- *             },
- *         ];
+ *             .add(FourthSystem, null, { repeat: 3, canExecute: (data) => data.someCondition });
  *     }
  *
  *     // Настройка зависимостей для Систем
@@ -112,9 +100,8 @@ export interface ISystemGroup<T = any> {
      * Этот метод вызывается при каждом срабатывании Signal.
      * 
      * @param data Данные, полученные от Signal.
-     * @returns Массив опций для настройки Систем.
      */
-    setup(data: T): IGroupOption[];
+    setup(chain: SystemChain, data: T): void;
 
     /**
      * @description
@@ -125,18 +112,4 @@ export interface ISystemGroup<T = any> {
      * @returns Отсортированный массив опций Систем.
      */
     sorted(data: T): IGroupSortedOption[];
-
-    /**
-     * @description
-     * Создает провайдер для Системы.
-     * Используется в методе setup для регистрации Систем.
-     * 
-     * @param system Класс Системы.
-     * @param data Данные для передачи в Систему.
-     * @returns Провайдер для Системы.
-     */
-    provide<T extends SystemType<any, any>>(
-        system: T,
-        data: SystemData<InstanceType<T>>,
-    ): ISystemProvider;
 }

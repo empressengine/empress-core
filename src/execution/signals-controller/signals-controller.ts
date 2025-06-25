@@ -1,7 +1,8 @@
 import { ExecutionController } from "@execution/execution-queue";
-import { GroupType } from "@containers/system-group";
 import { Disposable, ISignal } from "@shared/signal";
-import { ISignalConfig } from "./models";
+import { IGroupWithId, ISignalConfig } from "./models";
+import { SignalChain } from "./signal-chain";
+import { Utils } from "@shared/utils";
 
 /**
  * @description
@@ -36,8 +37,8 @@ import { ISignalConfig } from "./models";
  */
 export class SignalsController {
 
-    private _pairs: Map<ISignal<any>, GroupType<any>[]> = new Map();
-    private _disposables: Disposable[] = [];
+    private _pairs: Map<ISignal<any>, IGroupWithId[]> = new Map();
+    private _disposables: Map<ISignal<any>, Disposable> = new Map();
     private _executionIds: string[] = [];
 
     constructor(
@@ -54,7 +55,9 @@ export class SignalsController {
     public setup(configs: ISignalConfig[]): void {
         for(let config of configs) {
             const pair = this._pairs.get(config.signal) || [];
-            pair.push(...config.groups);
+            const groups = config.groups.map((group) => ({ id: Utils.uuid(), group }));
+
+            pair.push(...groups);
             this._pairs.set(config.signal, pair);
         }
     }
@@ -65,20 +68,12 @@ export class SignalsController {
      * При срабатывании Signal запускает связанные Группы в ExecutionController.
      */
     public subscribe(): void {
-        const signals = Array.from(this._pairs.keys());
-        const groups = Array.from(this._pairs.values());
-
-        for(let i = 0; i < signals.length; i++) {
-            const signal = signals[i];
-            const group = groups[i];
-
-            const disposable = signal.subscribe((data) => {
-                const executionId = this._executionController.create(group, data, signal.name);
-                this._executionController.run(executionId);
-                this._executionIds.push(executionId);
-            });
-            
-            this._disposables.push(disposable);
+        // Отписываемся от всех сигналов перед новой подпиской
+        this.unsubscribe();
+        
+        // Подписываемся на каждый сигнал
+        for (const signal of this._pairs.keys()) {
+            this._subscribeSignal(signal);
         }
     }
 
@@ -89,8 +84,41 @@ export class SignalsController {
      */
     public unsubscribe(): void {
         this._disposables.forEach((d) => d.dispose());
-        this._disposables.length = 0;
+        this._disposables.clear()
         this._executionIds.forEach((id) => this._executionController.stop(id));
         this._executionIds.length = 0;
+    }
+
+    /**
+     * @description
+     * Настраивает связь между сигналом и группами систем
+     * @param signal Сигнал
+     * @param configurator Функция конфигурации
+     */
+    public configure(signal: ISignal<any>, configuratorFn: (configurator: SignalChain) => void): void {
+        if (this._disposables.has(signal)) {
+            this._disposables.get(signal)?.dispose();
+            this._disposables.delete(signal);
+        }
+        
+        const existingGroups = this._pairs.get(signal) || [];
+        const chain = new SignalChain(existingGroups);
+        
+        configuratorFn(chain);
+        this._pairs.set(signal, chain.providers);
+        this._subscribeSignal(signal);
+    }
+
+    private _subscribeSignal(signal: ISignal<any>): void {
+        const groupsWithId = this._pairs.get(signal) || [];
+        const groups = groupsWithId.map(g => g.group);
+        
+        const disposable = signal.subscribe((data) => {
+            const executionId = this._executionController.create(groups, data, signal.name);
+            this._executionController.run(executionId);
+            this._executionIds.push(executionId);
+        });
+        
+        this._disposables.set(signal, disposable);
     }
 }

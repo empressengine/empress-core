@@ -3,9 +3,10 @@ import { SystemsContainer } from "@containers/systems-container";
 import { GroupsContainer } from "@containers/groups-container";
 import { EntityStorage } from "@data/entity-storage";
 import { ExecutionController } from "@execution/execution-queue";
-import { ISignalConfig, SignalsController } from "@execution/signals-controller";
+import { ISignalConfig, SignalChain, SignalsController } from "@execution/signals-controller";
 import { TimerController } from "@shared/timer";
 import { LifeCycle } from "@flow/lifecycle";
+import { ISignal } from "@shared/signal";
 
 /**
  * @description
@@ -20,13 +21,19 @@ import { LifeCycle } from "@flow/lifecycle";
  * empress.init();
  *
  * // Подписка на сигналы
+ * // Конфигурация сигналов
  * const baseSignals = [
  *   {
  *     signal: OnUpdateSignal,
  *     groups: [UpdateGroup]
  *   }
  * ];
- * empress.listen(baseSignals);
+ * 
+ * // Регистрация сигналов
+ * empress.listenSignals(baseSignals);
+ * 
+ * // Подписка на сигналы
+ * empress.subscribe();
  *
  * // Запуск приложения
  * empress.start();
@@ -64,9 +71,31 @@ export class EmpressCore {
      * Устанавливает связи между сигналами и группами систем.
      * @param configs Конфигурации связей между сигналами и группами
      */
-    public listen(configs: ISignalConfig[]): void {
+    public listenSignals(configs: ISignalConfig[]): void {
         const signalsController = ServiceContainer.instance.get(SignalsController);
         signalsController.setup(configs);
+    }
+
+    /**
+     * @description
+     * Более тонкая настрйока связей между Signal и Группами Систем.
+     * ПОзволяет переопределять существующие связи.
+     * 
+     * @param signal Signal для настройки
+     * @param configuratorFn Функция настройки связей Signal-Группа
+     */
+    public configureSignal(signal: ISignal<any>, configuratorFn: (configurator: SignalChain) => void): void {
+        const signalsController = ServiceContainer.instance.get(SignalsController);
+        signalsController.configure(signal, configuratorFn);
+    }
+
+    /**
+     * @description
+     * Активирует подписки на все настроенные Signal.
+     * При срабатывании Signal запускает связанные Группы в ExecutionController.
+     */
+    public subscribe(): void {
+        const signalsController = ServiceContainer.instance.get(SignalsController);
         signalsController.subscribe();
     }
 
