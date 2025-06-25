@@ -1,7 +1,7 @@
 import { Utils } from '@shared/utils';
-import { IGroupOption, ISystemGroup, ISystemProvider, SystemData, IGroupSortedOption } from './models';
-import { SystemType } from '@logic/system';
+import { ISystemGroup, IGroupSortedOption } from './models';
 import { Provider, ServiceContainer } from '@containers/services-container';
+import { SystemChain } from './system-chain';
 
 /**
  * @description
@@ -26,28 +26,16 @@ import { Provider, ServiceContainer } from '@containers/services-container';
  * ```typescript
  * class MyGroup extends SystemGroup<MyData> {
  *     // Настройка порядка выполнения Систем
- *     public setup(data: MyData): IGroupOption[] {
- *         return [
+ *     public setup(chain: SystemChain, data: MyData): void {
+ *         chain
  *             // Простая регистрация Системы
- *             {
- *                 instance: this.provide(FirstSystem),
- *             },
+ *             .add(FirstSystem)
  *             // Регистрация с передачей данных
- *             {
- *                 instance: this.provide(SecondSystem, data),
- *             },
+ *             .add(SecondSystem, data)
  *             // Расширение фильтра Системы
- *             {
- *                 instance: this.provide(ThirdSystem),
- *                 includes: [AdditionalComponent]
- *             },
+ *             .add(ThirdSystem, null, { includes: [AdditionalComponent] })
  *             // Повторное и условное выполнение
- *             {
- *                 instance: this.provide(FourthSystem),
- *                 repeat: 3,
- *                 canExecute: (data) => data.someCondition
- *             },
- *         ];
+ *             .add(FourthSystem, null, { repeat: 3, canExecute: (data) => data.someCondition });
  *     }
  *
  *     // Настройка зависимостей для Систем
@@ -72,6 +60,7 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
     }
 
     private _uuid: string = Utils.uuid();
+    private _chain: SystemChain = new SystemChain();
 
     /**
      * @description
@@ -81,7 +70,7 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * @param data Данные, полученные от Signal.
      * @returns Массив опций для настройки Систем.
      */
-    public abstract setup(data: T): IGroupOption[];
+    public abstract setup(chain: SystemChain, data: T): void;
 
     /**
      * @description
@@ -92,19 +81,18 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * @returns Отсортированный массив опций Систем.
      */
     public sorted(data: T): IGroupSortedOption[] {
-        const providers = this.setup(data);
-        const orderStep = 10000;
+        this.setup(this._chain, data);
+        const providers = this._chain.providers;
 
-        providers.forEach((provider, index) => {
+        providers.forEach((provider) => {
             if (provider.withDisabled === undefined) provider.withDisabled = false;
             if (provider.includes === undefined) provider.includes = [];
             if (provider.excludes === undefined) provider.excludes = [];
             if (!provider.repeat) provider.repeat = 1;
             if (!provider.canExecute) provider.canExecute = () => true;
-            if (provider.order === undefined) provider.order = (index + 1) * orderStep;
         });
 
-        return providers.sort((a, b) => (a.order || 0) - (b.order || 0)) as IGroupSortedOption[];
+        return providers as IGroupSortedOption[];
     }
 
     /**
@@ -115,25 +103,6 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
     public registerGroupDependencies(): void {
         const providers = this.setupDependencies();
         ServiceContainer.instance.registerModule(this.uuid, providers);
-    }
-
-    /**
-     * @description
-     * Создает провайдер для Системы.
-     * Используется в методе setup для регистрации Систем.
-     * 
-     * @param system Класс Системы.
-     * @param data Данные для передачи в Систему.
-     * @returns Провайдер для Системы.
-     */
-    public provide<T extends SystemType<any, any>>(
-        system: T,
-        data: SystemData<InstanceType<T>>,
-    ): ISystemProvider {
-        return {
-            system,
-            data,
-        };
     }
 
     protected setupDependencies(): Provider[] {

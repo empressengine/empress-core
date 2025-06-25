@@ -21,7 +21,7 @@
 ```
 SystemGroup
   ├── Signal (источник данных)
-  ├── System (исполняемые системы)
+  ├── SystemChain (цепочка систем)
   └── ServiceContainer (внедрение зависимостей)
 ```
 
@@ -30,37 +30,23 @@ SystemGroup
 ### Создание группы
 ```typescript
 class MovementGroup extends SystemGroup<Vec2> {
-    public setup(data: Vec2): IGroupOption[] {
-        return [
+    public setup(chain: SystemChain, data: Vec2): void {
+        chain
             // Простая регистрация
-            {
-                instance: this.provide(MovementSystem)
-            },
+            .add(MovementSystem)
             
             // С передачей данных
-            {
-                instance: this.provide(VelocitySystem, data)
-            },
+            .add(VelocitySystem, data)
             
             // С дополнительным фильтром
-            {
-                instance: this.provide(CollisionSystem),
-                includes: [ColliderComponent],
-                excludes: [DisabledComponent]
-            },
+            .add(CollisionSystem, null, { includes: [ColliderComponent], excludes: [DisabledComponent] })
             
             // С повторным выполнением
-            {
-                instance: this.provide(PhysicsSystem),
-                repeat: 3
-            },
+            .add(PhysicsSystem, null, { repeat: 3 })
             
             // С условным выполнением
-            {
-                instance: this.provide(AnimationSystem),
-                canExecute: (data) => data.x !== 0 || data.y !== 0
-            }
-        ];
+            .add(AnimationSystem, null, { canExecute: (data) => data.x !== 0 || data.y !== 0 })
+        };
     }
 
     // Переопределение зависимостей
@@ -75,38 +61,21 @@ class MovementGroup extends SystemGroup<Vec2> {
 }
 ```
 
-### Порядок выполнения
-```typescript
-// Явное указание порядка через свойство order
-{
-    instance: this.provide(FirstSystem),
-    order: 100
-},
-{
-    instance: this.provide(SecondSystem),
-    order: 200
-}
-
-// Если order не указан, системы выполняются в порядке объявления
-// с шагом 10000 между ними
-```
-
 ## API
 
 ### Класс SystemGroup<T>
 
 #### Методы
-- `setup(data: T): IGroupOption[]` - определяет порядок и настройки выполнения Систем
-- `provide(system: SystemType, data?: any): ISystemProvider` - создает провайдер для Системы
+- `setup(chain: SystemChain, data: T): void` - определяет порядок и настройки выполнения Систем
 - `setupDependencies(): Provider[]` - определяет зависимости для Систем в группе
 
 ### Интерфейс IGroupOption
 ```typescript
 interface IGroupOption {
+    id: string;                     // Уникальный идентификатор системы
     instance: ISystemProvider;      // Провайдер системы
     includes?: ComponentType[];     // Дополнительные компоненты для фильтрации
     excludes?: ComponentType[];     // Исключаемые компоненты
-    order?: number;                 // Порядок выполнения
     repeat?: number;                // Количество повторений
     withDisabled?: boolean;         // Включать ли неактивные сущности
     canExecute?: (data: any) => boolean; // Условие выполнения
@@ -116,8 +85,7 @@ interface IGroupOption {
 ## FAQ
 
 ### Как определяется порядок выполнения Систем?
-1. По свойству `order`, если оно указано
-2. По порядку объявления в методе `setup`, с шагом 10000 между системами
+1. По порядку объявления в методе `setup`.
 
 ### Как работают повторения Систем?
 Система будет выполнена указанное в `repeat` количество раз перед переходом к следующей системе.
