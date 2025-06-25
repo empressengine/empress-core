@@ -5,3 +5,8 @@ export interface ISignalConfig {
     signal: ISignal<any>;
     groups: GroupType<any>[];
 }
+
+export interface IGroupWithId {
+    id: string;
+    group: GroupType<any>;
+}
