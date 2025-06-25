@@ -267,13 +267,19 @@ export { Disposable_2 as Disposable }
  * empress.init();
  *
  * // Подписка на сигналы
+ * // Конфигурация сигналов
  * const baseSignals = [
  *   {
  *     signal: OnUpdateSignal,
  *     groups: [UpdateGroup]
  *   }
  * ];
- * empress.listen(baseSignals);
+ *
+ * // Регистрация сигналов
+ * empress.listenSignals(baseSignals);
+ *
+ * // Подписка на сигналы
+ * empress.subscribe();
  *
  * // Запуск приложения
  * empress.start();
@@ -296,7 +302,22 @@ export declare class EmpressCore {
      * Устанавливает связи между сигналами и группами систем.
      * @param configs Конфигурации связей между сигналами и группами
      */
-    listen(configs: ISignalConfig[]): void;
+    listenSignals(configs: ISignalConfig[]): void;
+    /**
+     * @description
+     * Более тонкая настрйока связей между Signal и Группами Систем.
+     * ПОзволяет переопределять существующие связи.
+     *
+     * @param signal Signal для настройки
+     * @param configuratorFn Функция настройки связей Signal-Группа
+     */
+    configureSignal(signal: ISignal<any>, configuratorFn: (configurator: SignalChain) => void): void;
+    /**
+     * @description
+     * Активирует подписки на все настроенные Signal.
+     * При срабатывании Signal запускает связанные Группы в ExecutionController.
+     */
+    subscribe(): void;
     /**
      * @description
      * Регистрирует глобальные сервисы в контейнере зависимостей.
@@ -973,13 +994,17 @@ export declare interface IEntityStorage {
 }
 
 export declare interface IGroupOption extends Partial<ISystemOptions> {
-    order?: number;
     instance?: ISystemProvider;
 }
 
 export declare interface IGroupSortedOption extends ISystemOptions {
     order: number;
     instance: ISystemProvider;
+}
+
+export declare interface IGroupWithId {
+    id: string;
+    group: GroupType<any>;
 }
 
 /**
@@ -1176,28 +1201,16 @@ export declare interface ISystemExternalData {
  * ```typescript
  * class MyGroup extends SystemGroup<MyData> {
  *     // Настройка порядка выполнения Систем
- *     public setup(data: MyData): IGroupOption[] {
- *         return [
+ *     public setup(chain: SystemChain, data: MyData): void {
+ *         chain
  *             // Простая регистрация Системы
- *             {
- *                 instance: this.provide(FirstSystem),
- *             },
+ *             .add(FirstSystem)
  *             // Регистрация с передачей данных
- *             {
- *                 instance: this.provide(SecondSystem, data),
- *             },
+ *             .add(SecondSystem, data)
  *             // Расширение фильтра Системы
- *             {
- *                 instance: this.provide(ThirdSystem),
- *                 includes: [AdditionalComponent]
- *             },
+ *             .add(ThirdSystem, null, { includes: [AdditionalComponent] })
  *             // Повторное и условное выполнение
- *             {
- *                 instance: this.provide(FourthSystem),
- *                 repeat: 3,
- *                 canExecute: (data) => data.someCondition
- *             },
- *         ];
+ *             .add(FourthSystem, null, { repeat: 3, canExecute: (data) => data.someCondition });
  *     }
  *
  *     // Настройка зависимостей для Систем
@@ -1230,9 +1243,8 @@ export declare interface ISystemGroup<T = any> {
      * Этот метод вызывается при каждом срабатывании Signal.
      *
      * @param data Данные, полученные от Signal.
-     * @returns Массив опций для настройки Систем.
      */
-    setup(data: T): IGroupOption[];
+    setup(chain: SystemChain, data: T): void;
     /**
      * @description
      * Сортирует и подготавливает опции Систем для выполнения.
@@ -1242,16 +1254,6 @@ export declare interface ISystemGroup<T = any> {
      * @returns Отсортированный массив опций Систем.
      */
     sorted(data: T): IGroupSortedOption[];
-    /**
-     * @description
-     * Создает провайдер для Системы.
-     * Используется в методе setup для регистрации Систем.
-     *
-     * @param system Класс Системы.
-     * @param data Данные для передачи в Систему.
-     * @returns Провайдер для Системы.
-     */
-    provide<T extends SystemType<any, any>>(system: T, data: SystemData<InstanceType<T>>): ISystemProvider;
 }
 
 export declare interface ISystemInstance extends ISystemExternalData, ISystemOptions {
@@ -1260,6 +1262,7 @@ export declare interface ISystemInstance extends ISystemExternalData, ISystemOpt
 }
 
 export declare interface ISystemOptions {
+    id: string;
     withDisabled: boolean;
     includes: ComponentType<any>[];
     excludes: ComponentType<any>[];
@@ -1593,6 +1596,62 @@ export declare class Signal<T> implements ISignal<T> {
     dispatch(data: T): Promise<void>;
 }
 
+export declare class SignalChain {
+    private _existingProviders;
+    /**
+     * @description
+     * Возвращает массив настроенных групп
+     *
+     * @returns Массив настроенных групп
+     */
+    get providers(): IGroupWithId[];
+    private _providers;
+    constructor(_existingProviders?: IGroupWithId[]);
+    /**
+     * @description
+     * Добавляет группу в конец списка
+     * @param group Класс группы
+     * @param id Идентификатор группы (опционально)
+     */
+    add(group: GroupType<any>, id?: string): SignalChain;
+    /**
+     * @description
+     * Добавляет группу в начало списка
+     * @param group Класс группы
+     * @param id Идентификатор группы (опционально)
+     */
+    prepend(group: GroupType<any>, id?: string): SignalChain;
+    /**
+     * @description
+     * Вставляет группу перед указанной группой
+     * @param targetId Идентификатор целевой группы
+     * @param group Класс группы для вставки
+     * @param id Идентификатор новой группы (опционально)
+     */
+    insertBefore(targetId: string, group: GroupType<any>, id?: string): SignalChain;
+    /**
+     * @description
+     * Вставляет группу после указанной группы
+     * @param targetId Идентификатор целевой группы
+     * @param group Класс группы для вставки
+     * @param id Идентификатор новой группы (опционально)
+     */
+    insertAfter(targetId: string, group: GroupType<any>, id?: string): SignalChain;
+    /**
+     * @description
+     * Заменяет указанную группу
+     * @param targetId Идентификатор группы для замены
+     * @param group Новый класс группы
+     */
+    replace(targetId: string, group: GroupType<any>): SignalChain;
+    /**
+     * @description
+     * Удаляет указанную группу
+     * @param targetId Идентификатор группы для удаления
+     */
+    remove(targetId: string): SignalChain;
+}
+
 /**
  * @description
  * Контроллер для связывания Signal и Групп Систем.
@@ -1650,6 +1709,14 @@ export declare class SignalsController {
      * Используется при остановке или перезапуске приложения.
      */
     unsubscribe(): void;
+    /**
+     * @description
+     * Настраивает связь между сигналом и группами систем
+     * @param signal Сигнал
+     * @param configurator Функция конфигурации
+     */
+    configure(signal: ISignal<any>, configuratorFn: (configurator: SignalChain) => void): void;
+    private _subscribeSignal;
 }
 
 /**
@@ -1766,6 +1833,112 @@ export declare abstract class System<TData = any> implements ISystem<TData> {
     forceStop(): void;
 }
 
+/**
+ * @description
+ * Класс для создания цепочки Систем.
+ *
+ * @example
+ * ```typescript
+ * const chain = new SystemChain();
+ * chain.add(SomeSystem, { id: 'SomeSystem' });
+ * chain.add(SomeOtherSystem, { id: 'SomeOtherSystem' });
+ * ```
+ */
+export declare class SystemChain {
+    /**
+     * @description
+     * Получает массив опций Систем в группе.
+     *
+     * @returns Массив опций Систем.
+     */
+    get providers(): IGroupOption[];
+    private _providers;
+    /**
+     * @description
+     * Добавляет Систему в конец группы.
+     *
+     * @param system Конструктор Системы.
+     * @param data Данные для передачи в Систему.
+     * @param options Опции для настройки Системы.
+     * @returns Экземпляр SystemChain.
+     */
+    add<T extends SystemType<any, any>>(system: T, data?: SystemData<InstanceType<T>>, options?: Partial<ISystemOptions>): SystemChain;
+    /**
+     * @description
+     * Добавляет Систему в начало группы.
+     *
+     * @param system Конструктор Системы.
+     * @param data Данные для передачи в Систему.
+     * @param options Опции для настройки Системы.
+     * @returns Экземпляр SystemChain.
+     */
+    prepend<T extends SystemType<any, any>>(system: T, data?: SystemData<InstanceType<T>>, options?: Partial<ISystemOptions>): SystemChain;
+    /**
+     * @description
+     * Вставляет Систему перед определенной Системой в группе.
+     *
+     * @param targetId Идентификатор целевой Системы.
+     * @param system Конструктор Системы.
+     * @param data Данные для передачи в Систему.
+     * @param options Опции для настройки Системы.
+     * @returns Экземпляр SystemChain.
+     */
+    insertBefore<T extends SystemType<any, any>>(targetId: string, system: T, data?: SystemData<InstanceType<T>>, options?: Partial<ISystemOptions>): SystemChain;
+    /**
+     * @description
+     * Вставляет Систему после определенной Системы в группе.
+     *
+     * @param targetId Идентификатор целевой Системы.
+     * @param system Конструктор Системы.
+     * @param data Данные для передачи в Систему.
+     * @param options Опции для настройки Системы.
+     * @returns Экземпляр SystemChain.
+     */
+    insertAfter<T extends SystemType<any, any>>(targetId: string, system: T, data?: SystemData<InstanceType<T>>, options?: Partial<ISystemOptions>): SystemChain;
+    /**
+     * @description
+     * Заменяет определенную Систему в группе.
+     *
+     * @param targetId Идентификатор целевой Системы.
+     * @param system Конструктор Системы.
+     * @param data Данные для передачи в Систему.
+     * @param options Опции для настройки Системы.
+     * @returns Экземпляр SystemChain.
+     */
+    replace<T extends SystemType<any, any>>(targetId: string, system: T, data?: SystemData<InstanceType<T>>, options?: Partial<ISystemOptions>): SystemChain;
+    /**
+     * @description
+     * Удаляет определенную Систему из группы.
+     *
+     * @param targetId Идентификатор целевой Системы.
+     * @returns Экземпляр SystemChain.
+     */
+    remove(targetId: string): SystemChain;
+    /**
+     * @description
+     * Получает определенную Систему из группы.
+     *
+     * @param targetId Идентификатор целевой Системы.
+     * @returns Опция Системы или undefined.
+     */
+    get(targetId: string): IGroupOption | undefined;
+    /**
+     * @description
+     * Проверяет наличие определенной Системы в группе.
+     *
+     * @param targetId Идентификатор целевой Системы.
+     * @returns true, если Система найдена, иначе false.
+     */
+    has(targetId: string): boolean;
+    /**
+     * @description
+     * Возвращает количество Систем в группе.
+     *
+     * @returns Количество Систем.
+     */
+    count(): number;
+}
+
 export declare type SystemData<T extends ISystem<any>> = T extends ISystem<infer U> ? U : never;
 
 /**
@@ -1791,28 +1964,16 @@ export declare type SystemData<T extends ISystem<any>> = T extends ISystem<infer
  * ```typescript
  * class MyGroup extends SystemGroup<MyData> {
  *     // Настройка порядка выполнения Систем
- *     public setup(data: MyData): IGroupOption[] {
- *         return [
+ *     public setup(chain: SystemChain, data: MyData): void {
+ *         chain
  *             // Простая регистрация Системы
- *             {
- *                 instance: this.provide(FirstSystem),
- *             },
+ *             .add(FirstSystem)
  *             // Регистрация с передачей данных
- *             {
- *                 instance: this.provide(SecondSystem, data),
- *             },
+ *             .add(SecondSystem, data)
  *             // Расширение фильтра Системы
- *             {
- *                 instance: this.provide(ThirdSystem),
- *                 includes: [AdditionalComponent]
- *             },
+ *             .add(ThirdSystem, null, { includes: [AdditionalComponent] })
  *             // Повторное и условное выполнение
- *             {
- *                 instance: this.provide(FourthSystem),
- *                 repeat: 3,
- *                 canExecute: (data) => data.someCondition
- *             },
- *         ];
+ *             .add(FourthSystem, null, { repeat: 3, canExecute: (data) => data.someCondition });
  *     }
  *
  *     // Настройка зависимостей для Систем
@@ -1834,6 +1995,7 @@ export declare abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      */
     get uuid(): string;
     private _uuid;
+    private _chain;
     /**
      * @description
      * Определяет порядок и настройки выполнения Систем в группе.
@@ -1842,7 +2004,7 @@ export declare abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * @param data Данные, полученные от Signal.
      * @returns Массив опций для настройки Систем.
      */
-    abstract setup(data: T): IGroupOption[];
+    abstract setup(chain: SystemChain, data: T): void;
     /**
      * @description
      * Сортирует и подготавливает опции Систем для выполнения.
@@ -1858,16 +2020,6 @@ export declare abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * Зависимости группы переопределяют глобальные зависимости из EmpressCore.
      */
     registerGroupDependencies(): void;
-    /**
-     * @description
-     * Создает провайдер для Системы.
-     * Используется в методе setup для регистрации Систем.
-     *
-     * @param system Класс Системы.
-     * @param data Данные для передачи в Систему.
-     * @returns Провайдер для Системы.
-     */
-    provide<T extends SystemType<any, any>>(system: T, data: SystemData<InstanceType<T>>): ISystemProvider;
     protected setupDependencies(): Provider[];
 }
 
