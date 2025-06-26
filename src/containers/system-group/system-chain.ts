@@ -212,4 +212,12 @@ export class SystemChain {
     public count(): number {
         return this._providers.length;
     }
+
+    /**
+     * @description
+     * Очищает массив провайдеров для повтороного переопределения
+     */
+    public clear(): void {
+        this._providers.length = 0;
+    }
 }
