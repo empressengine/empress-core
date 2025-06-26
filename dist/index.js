@@ -123,7 +123,7 @@ const f = class f {
   }
 };
 f.counter = 0, f.lastTime = 0;
-let a = f;
+let u = f;
 class F {
   constructor() {
     this._providers = [];
@@ -147,7 +147,7 @@ class F {
    * @returns Экземпляр SystemChain.
    */
   add(e, t, s = {}) {
-    const i = s.id || a.uuid(), n = {
+    const i = s.id || u.uuid(), n = {
       ...s,
       id: i,
       instance: { system: e, data: t }
@@ -164,7 +164,7 @@ class F {
    * @returns Экземпляр SystemChain.
    */
   prepend(e, t, s = {}) {
-    const i = s.id || a.uuid(), n = {
+    const i = s.id || u.uuid(), n = {
       ...s,
       id: i,
       instance: { system: e, data: t }
@@ -184,7 +184,7 @@ class F {
   insertBefore(e, t, s, i = {}) {
     const n = this._providers.findIndex((r) => r.id === e);
     if (n >= 0) {
-      const r = i.id || a.uuid(), c = {
+      const r = i.id || u.uuid(), c = {
         ...i,
         id: r,
         instance: { system: t, data: s }
@@ -206,7 +206,7 @@ class F {
   insertAfter(e, t, s, i = {}) {
     const n = this._providers.findIndex((r) => r.id === e);
     if (n >= 0) {
-      const r = i.id || a.uuid(), c = {
+      const r = i.id || u.uuid(), c = {
         ...i,
         id: r,
         instance: { system: t, data: s }
@@ -276,10 +276,17 @@ class F {
   count() {
     return this._providers.length;
   }
+  /**
+   * @description
+   * Очищает массив провайдеров для повтороного переопределения
+   */
+  clear() {
+    this._providers.length = 0;
+  }
 }
 class M {
   constructor() {
-    this._uuid = a.uuid(), this._chain = new F();
+    this._uuid = u.uuid(), this._chain = new F();
   }
   /**
    * @description
@@ -297,7 +304,7 @@ class M {
    * @returns Отсортированный массив опций Систем.
    */
   sorted(e) {
-    this._chain.providers.length === 0 && this.setup(this._chain, e);
+    this._chain.clear(), this.setup(this._chain, e);
     const t = this._chain.providers;
     return t.forEach((s) => {
       s.withDisabled === void 0 && (s.withDisabled = !1), s.includes === void 0 && (s.includes = []), s.excludes === void 0 && (s.excludes = []), s.repeat || (s.repeat = 1), s.canExecute || (s.canExecute = () => !0);
@@ -310,13 +317,13 @@ class M {
    */
   registerGroupDependencies() {
     const e = this.setupDependencies();
-    u.instance.registerModule(this.uuid, e);
+    a.instance.registerModule(this.uuid, e);
   }
   setupDependencies() {
     return [];
   }
 }
-class u {
+class a {
   constructor() {
     this.providers = /* @__PURE__ */ new Map(), this.instances = /* @__PURE__ */ new Map(), this.systemTokens = [], this.providers.set("global", /* @__PURE__ */ new Map()), this.instances.set("global", /* @__PURE__ */ new Map());
   }
@@ -326,7 +333,7 @@ class u {
    * Реализует паттерн Singleton.
    */
   static get instance() {
-    return u._instance || (u._instance = new u()), u._instance;
+    return a._instance || (a._instance = new a()), a._instance;
   }
   /**
    * @description
@@ -436,11 +443,11 @@ function R(o) {
         configurable: !1
       }), Object.defineProperty(e, t, {
         value: null
-      }), u.instance.memorizeSystem(e.constructor, o, t);
+      }), a.instance.memorizeSystem(e.constructor, o, t);
       return;
     }
     e instanceof M && (s = e.uuid || "global"), Object.defineProperty(e, t, {
-      get: () => u.instance.get(o, s),
+      get: () => a.instance.get(o, s),
       enumerable: !0,
       configurable: !1
     });
@@ -691,7 +698,7 @@ class $ {
         const t = this._queue.shift();
         if (t && t.canExecute()) {
           const i = { includes: t.includes, excludes: t.excludes };
-          t.system.setContext(t.groupId, t.executionId, this._entityStorage), u.instance.getDependencyForSystem(t.groupId, t.system), this._currentSystem = t.system;
+          t.system.setContext(t.groupId, t.executionId, this._entityStorage), a.instance.getDependencyForSystem(t.groupId, t.system), this._currentSystem = t.system;
           const n = t.system.run(t.data, i, t.withDisabled);
           if (n instanceof Promise)
             if (e)
@@ -811,7 +818,7 @@ class x {
    */
   create(e, t, s = "unnamed") {
     const i = new $(
-      a.uuid(),
+      u.uuid(),
       this._systemsContainer,
       this._groupsContainer,
       this._entityStorage,
@@ -936,7 +943,7 @@ class k {
    * @param id Идентификатор группы (опционально)
    */
   add(e, t) {
-    const s = t || a.uuid();
+    const s = t || u.uuid();
     return this._providers.push({ id: s, group: e }), this;
   }
   /**
@@ -946,7 +953,7 @@ class k {
    * @param id Идентификатор группы (опционально)
    */
   prepend(e, t) {
-    const s = t || a.uuid();
+    const s = t || u.uuid();
     return this._providers.unshift({ id: s, group: e }), this;
   }
   /**
@@ -959,7 +966,7 @@ class k {
   insertBefore(e, t, s) {
     const i = this._providers.findIndex((n) => n.id === e);
     if (i >= 0) {
-      const n = s || a.uuid();
+      const n = s || u.uuid();
       this._providers.splice(i, 0, { id: n, group: t });
     }
     return this;
@@ -974,7 +981,7 @@ class k {
   insertAfter(e, t, s) {
     const i = this._providers.findIndex((n) => n.id === e);
     if (i >= 0) {
-      const n = s || a.uuid();
+      const n = s || u.uuid();
       this._providers.splice(i + 1, 0, { id: n, group: t });
     }
     return this;
@@ -1012,7 +1019,7 @@ class _ {
    */
   setup(e) {
     for (let t of e) {
-      const s = this._pairs.get(t.signal) || [], i = t.groups.map((n) => ({ id: a.uuid(), group: n }));
+      const s = this._pairs.get(t.signal) || [], i = t.groups.map((n) => ({ id: u.uuid(), group: n }));
       s.push(...i), this._pairs.set(t.signal, s);
     }
   }
@@ -1143,7 +1150,7 @@ class y {
    * @returns ID созданного таймера
    */
   setTimeout(e, t) {
-    const s = a.uuid(), i = new j(s, this, e, t);
+    const s = u.uuid(), i = new j(s, this, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -1154,7 +1161,7 @@ class y {
    * @returns ID созданного интервала
    */
   setInterval(e, t) {
-    const s = a.uuid(), i = new O(s, e, t);
+    const s = u.uuid(), i = new O(s, e, t);
     return this._updatables.set(s, i), s;
   }
   /**
@@ -1198,7 +1205,7 @@ class S {
    * @param name - Имя сигнала. Необязательное поле, используется для отладки.
    */
   constructor(e = "Signal") {
-    this._name = e, this.listeners = [], this._uuid = a.uuid();
+    this._name = e, this.listeners = [], this._uuid = u.uuid();
   }
   /**
    * @description
@@ -1338,7 +1345,7 @@ class B {
    */
   init() {
     this.registerServices();
-    const e = u.instance.get(m), t = u.instance.get(y);
+    const e = a.instance.get(m), t = a.instance.get(y);
     e.addUpdateCallback((s) => {
       t.update(s);
     });
@@ -1348,7 +1355,7 @@ class B {
    * Запускает приложение, инициируя жизненный цикл.
    */
   start() {
-    u.instance.get(m).start();
+    a.instance.get(m).start();
   }
   /**
    * @description
@@ -1356,7 +1363,7 @@ class B {
    * @param configs Конфигурации связей между сигналами и группами
    */
   listenSignals(e) {
-    u.instance.get(_).setup(e);
+    a.instance.get(_).setup(e);
   }
   /**
    * @description
@@ -1367,7 +1374,7 @@ class B {
    * @param configuratorFn Функция настройки связей Signal-Группа
    */
   configureSignal(e, t) {
-    u.instance.get(_).configure(e, t);
+    a.instance.get(_).configure(e, t);
   }
   /**
    * @description
@@ -1375,7 +1382,7 @@ class B {
    * При срабатывании Signal запускает связанные Группы в ExecutionController.
    */
   subscribe() {
-    u.instance.get(_).subscribe();
+    a.instance.get(_).subscribe();
   }
   /**
    * @description
@@ -1383,7 +1390,7 @@ class B {
    * @param providers Массив провайдеров сервисов
    */
   registerGlobalServices(e) {
-    u.instance.registerGlobal(e);
+    a.instance.registerGlobal(e);
   }
   /**
    * @description
@@ -1657,7 +1664,7 @@ export {
   m as LifeCycle,
   U as OnStartSignal,
   Q as OnUpdateSignal,
-  u as ServiceContainer,
+  a as ServiceContainer,
   S as Signal,
   k as SignalChain,
   _ as SignalsController,
@@ -1666,5 +1673,5 @@ export {
   M as SystemGroup,
   w as SystemsContainer,
   y as TimerController,
-  a as Utils
+  u as Utils
 };

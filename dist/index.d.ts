@@ -1937,6 +1937,11 @@ export declare class SystemChain {
      * @returns Количество Систем.
      */
     count(): number;
+    /**
+     * @description
+     * Очищает массив провайдеров для повтороного переопределения
+     */
+    clear(): void;
 }
 
 export declare type SystemData<T extends ISystem<any>> = T extends ISystem<infer U> ? U : never;
