@@ -81,7 +81,7 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * @returns Отсортированный массив опций Систем.
      */
     public sorted(data: T): IGroupSortedOption[] {
-        this.setup(this._chain, data);
+        this._chain.providers.length === 0 && this.setup(this._chain, data);
         const providers = this._chain.providers;
 
         providers.forEach((provider) => {
