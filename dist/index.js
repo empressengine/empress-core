@@ -297,7 +297,7 @@ class M {
    * @returns Отсортированный массив опций Систем.
    */
   sorted(e) {
-    this.setup(this._chain, e);
+    this._chain.providers.length === 0 && this.setup(this._chain, e);
     const t = this._chain.providers;
     return t.forEach((s) => {
       s.withDisabled === void 0 && (s.withDisabled = !1), s.includes === void 0 && (s.includes = []), s.excludes === void 0 && (s.excludes = []), s.repeat || (s.repeat = 1), s.canExecute || (s.canExecute = () => !0);
