@@ -815,6 +815,9 @@ export declare type GroupData<T extends ISystemGroup> = T extends ISystemGroup<i
 export declare class GroupsContainer {
     private _cache;
     get(ctor: GroupType<any>): SystemGroup<any>;
+    set(ctor: GroupType<any>, item: SystemGroup<any>): void;
+    has(ctor: GroupType<any>): boolean;
+    remove(ctor: GroupType<any>): void;
 }
 
 export declare type GroupType<T> = new (...args: any[]) => ISystemGroup<T>;

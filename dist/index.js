@@ -1,4 +1,4 @@
-class I {
+class F {
   constructor() {
     this._groupId = "", this._executionId = "", this.withDisabled = !1;
   }
@@ -124,7 +124,7 @@ const f = class f {
 };
 f.counter = 0, f.lastTime = 0;
 let u = f;
-class F {
+class M {
   constructor() {
     this._providers = [];
   }
@@ -284,9 +284,9 @@ class F {
     this._providers.length = 0;
   }
 }
-class M {
+class T {
   constructor() {
-    this._uuid = u.uuid(), this._chain = new F();
+    this._uuid = u.uuid(), this._chain = new M();
   }
   /**
    * @description
@@ -427,8 +427,8 @@ class a {
         if (l ? (d = (r = this.providers.get(e)) == null ? void 0 : r.get(i.token), p = e) : c && (d = this.providers.get("global").get(i.token), p = "global"), !d) return;
         let g = this.get(i.token, p);
         d.immutable && (g = new Proxy(g, {
-          get: (q, P) => {
-            const b = q[P];
+          get: (P, I) => {
+            const b = P[I];
             return b instanceof Object ? new Proxy(b, {}) : b;
           },
           set: () => (console.warn("Direct state mutation is not allowed. Use setState instead."), !1)
@@ -446,7 +446,7 @@ function R(o) {
     throw new Error("Token must be provided to @Inject decorator when not using reflect-metadata");
   return function(e, t) {
     let s = "global";
-    if (e instanceof I) {
+    if (e instanceof F) {
       Object.defineProperty(e, "injectHere", {
         value: "injectHere",
         enumerable: !1,
@@ -456,7 +456,7 @@ function R(o) {
       }), a.instance.memorizeSystem(e.constructor, o, t);
       return;
     }
-    e instanceof M && (s = e.uuid || "global"), Object.defineProperty(e, t, {
+    e instanceof T && (s = e.uuid || "global"), Object.defineProperty(e, t, {
       get: () => a.instance.get(o, s),
       enumerable: !0,
       configurable: !1
@@ -481,13 +481,22 @@ class w {
     return t || (t = new e(), this._cache.set(e, t)), t;
   }
 }
-class T {
+class C {
   constructor() {
     this._cache = /* @__PURE__ */ new Map();
   }
   get(e) {
     let t = this._cache.get(e);
     return t || (t = new e(), t.registerGroupDependencies(), this._cache.set(e, t)), t;
+  }
+  set(e, t) {
+    this._cache.set(e, t);
+  }
+  has(e) {
+    return this._cache.has(e);
+  }
+  remove(e) {
+    this._cache.delete(e);
   }
 }
 const A = (o, e) => (t) => !(!t.hasComponents(o) || e && t.hasComponents(e));
@@ -592,7 +601,7 @@ const v = class v {
 };
 v._componentFrequency = /* @__PURE__ */ new Map();
 let h = v;
-class C {
+class x {
   constructor() {
     this._entities = /* @__PURE__ */ new Map();
   }
@@ -788,7 +797,7 @@ class $ {
     }), i;
   }
 }
-class x {
+class E {
   constructor(e, t, s) {
     this._systemsContainer = e, this._groupsContainer = t, this._entityStorage = s, this._queues = /* @__PURE__ */ new Map();
   }
@@ -1208,7 +1217,7 @@ class y {
     Array.from(this._updatables.values()).forEach((s) => s.update(e));
   }
 }
-class S {
+class q {
   /**
    * @description
    * Создаёт новый сигнал.
@@ -1275,7 +1284,7 @@ class S {
     await Promise.all(s), t.length > 0 && (this.listeners = this.listeners.filter((i) => !t.includes(i.callback)));
   }
 }
-const U = new S(), Q = new S();
+const U = new q(), Q = new q();
 class m {
   constructor() {
     this._lastTime = 0, this._paused = !1, this._speedMultiplier = 1, this._onUpdate = [], this._onStart = [], this.animate = (e) => {
@@ -1413,18 +1422,19 @@ class B {
    * - SignalsController для управления сигналами
    */
   registerServices() {
-    const e = new C(), t = new w(), s = new T(), i = new m(), n = new y(), r = new x(t, s, e), c = new _(r);
+    const e = new x(), t = new w(), s = new C(), i = new m(), n = new y(), r = new E(t, s, e), c = new _(r);
     this.registerGlobalServices([
-      { provide: C, useFactory: () => e },
+      { provide: x, useFactory: () => e },
       { provide: w, useFactory: () => t },
+      { provide: C, useFactory: () => s },
       { provide: m, useFactory: () => i },
       { provide: y, useFactory: () => n },
-      { provide: x, useFactory: () => r },
+      { provide: E, useFactory: () => r },
       { provide: _, useFactory: () => c }
     ]);
   }
 }
-class E {
+class S {
   constructor() {
     this._items = [];
   }
@@ -1490,7 +1500,7 @@ class E {
 }
 class z {
   constructor(e, t = "Entity") {
-    this._uuid = e, this._name = t, this._active = !0, this._components = new E(), this._disabledComponents = new E();
+    this._uuid = e, this._name = t, this._active = !0, this._components = new S(), this._disabledComponents = new S();
   }
   /**
    * @description
@@ -1666,21 +1676,21 @@ export {
   G as DeferredPromise,
   B as EmpressCore,
   z as Entity,
-  C as EntityStorage,
-  x as ExecutionController,
+  x as EntityStorage,
+  E as ExecutionController,
   D as Filtered,
-  T as GroupsContainer,
+  C as GroupsContainer,
   R as Inject,
   m as LifeCycle,
   U as OnStartSignal,
   Q as OnUpdateSignal,
   a as ServiceContainer,
-  S as Signal,
+  q as Signal,
   k as SignalChain,
   _ as SignalsController,
-  I as System,
-  F as SystemChain,
-  M as SystemGroup,
+  F as System,
+  M as SystemChain,
+  T as SystemGroup,
   w as SystemsContainer,
   y as TimerController,
   u as Utils
