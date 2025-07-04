@@ -1233,6 +1233,11 @@ export declare interface ISystemGroup<T = any> {
     uuid: string;
     /**
      * @description
+     * Экземпляр SystemChain для настройки порядка выполнения Систем.
+     */
+    chain: SystemChain;
+    /**
+     * @description
      * Регистрирует зависимости группы в ServiceContainer.
      * Зависимости группы переопределяют глобальные зависимости из EmpressCore.
      */
@@ -1999,6 +2004,11 @@ export declare abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * Уникальный идентификатор группы.
      */
     get uuid(): string;
+    /**
+     * @description
+     * Экземпляр SystemChain для настройки порядка выполнения Систем.
+     */
+    get chain(): SystemChain;
     private _uuid;
     private _chain;
     /**
