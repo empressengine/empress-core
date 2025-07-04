@@ -67,6 +67,10 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
         return this._chain;
     }
 
+    public set chain(chain: SystemChain) {
+        this._chain = chain;
+    }
+
     private _uuid: string = Utils.uuid();
     private _chain: SystemChain = new SystemChain();
 
