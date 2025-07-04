@@ -59,6 +59,14 @@ export abstract class SystemGroup<T = any> implements ISystemGroup<T> {
         return this._uuid;
     }
 
+    /**
+     * @description
+     * Экземпляр SystemChain для настройки порядка выполнения Систем.
+     */
+    public get chain(): SystemChain {
+        return this._chain;
+    }
+
     private _uuid: string = Utils.uuid();
     private _chain: SystemChain = new SystemChain();
 

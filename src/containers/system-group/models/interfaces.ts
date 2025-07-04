@@ -89,6 +89,12 @@ export interface ISystemGroup<T = any> {
 
     /**
      * @description
+     * Экземпляр SystemChain для настройки порядка выполнения Систем.
+     */
+    chain: SystemChain;
+
+    /**
+     * @description
      * Регистрирует зависимости группы в ServiceContainer.
      * Зависимости группы переопределяют глобальные зависимости из EmpressCore.
      */
