@@ -130,6 +130,7 @@ export class EmpressCore {
         this.registerGlobalServices([
             { provide: EntityStorage, useFactory: () => entityStorage }, 
             { provide: SystemsContainer, useFactory: () => systemsContainer },
+            { provide: GroupsContainer, useFactory: () => groupsContainer },
             { provide: LifeCycle, useFactory: () => lifecycle },
             { provide: TimerController, useFactory: () => timerController },
             { provide: ExecutionController, useFactory: () => executionController },

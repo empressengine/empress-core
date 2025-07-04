@@ -13,4 +13,16 @@ export class GroupsContainer  {
 
         return item;
     }
+
+    public set(ctor: GroupType<any>, item: SystemGroup<any>): void {
+        this._cache.set(ctor, item);
+    }
+
+    public has(ctor: GroupType<any>): boolean {
+        return this._cache.has(ctor);
+    }
+
+    public remove(ctor: GroupType<any>): void {
+        this._cache.delete(ctor);
+    }
 }
