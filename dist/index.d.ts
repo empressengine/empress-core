@@ -2009,6 +2009,7 @@ export declare abstract class SystemGroup<T = any> implements ISystemGroup<T> {
      * Экземпляр SystemChain для настройки порядка выполнения Систем.
      */
     get chain(): SystemChain;
+    set chain(chain: SystemChain);
     private _uuid;
     private _chain;
     /**

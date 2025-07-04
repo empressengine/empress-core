@@ -302,6 +302,9 @@ class M {
   get chain() {
     return this._chain;
   }
+  set chain(e) {
+    this._chain = e;
+  }
   /**
    * @description
    * Сортирует и подготавливает опции Систем для выполнения.
